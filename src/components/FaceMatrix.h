@@ -1,6 +1,4 @@
 #include <Adafruit_NeoMatrix.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
 #include <Faces.h>
 
 class FaceMatrix {
@@ -33,4 +31,5 @@ class FaceMatrix {
         void setBrightness(int brightness);
         void setTalking(bool talking);
         void setEmotion(int emotion, bool force = false);
+        int getEyeFrame();
 };

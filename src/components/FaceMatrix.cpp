@@ -99,3 +99,25 @@ void FaceMatrix::display(uint16_t color, float equalizerOffset) {
 
     matrix->show();
 }
+
+void FaceMatrix::setEmotion(int newEmotion, bool force) {
+    if (force) {
+        emotion = newEmotion;
+    } else {
+        toEmotion = newEmotion;
+        blinkTimer = EYE_FRAMES-1;
+    }
+}
+
+void FaceMatrix::setBrightness(int newBrightness) {
+    brightness = newBrightness;
+    matrix->setBrightness(brightness * NEO_MATRIX_BRIGHTNESS_MULTIPLIER);
+}
+
+void FaceMatrix::setTalking(bool newTalking) {
+    talking = newTalking;
+}
+
+int FaceMatrix::getEyeFrame() {
+    return EYE_FRAMES-1-min(abs(blinkTimer), EYE_FRAMES-1);
+}
