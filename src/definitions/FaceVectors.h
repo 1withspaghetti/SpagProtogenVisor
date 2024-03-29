@@ -8,6 +8,19 @@ struct Point {
     double distance(Point p) {
         return sqrt(pow(x - p.x, 2) + pow(y - p.y, 2));
     }
+    Point& moveTowards(Point p, double d) {
+        double distance = this->distance(p);
+        if (distance > d) {
+            double angle = atan2(p.y - y, p.x - x);
+            x += cos(angle) * d;
+            y += sin(angle) * d;
+        }
+        else {
+            x = p.x;
+            y = p.y;
+        }
+        return *this;
+    }
     Point operator+(Point p) {
         return Point(x + p.x, y + p.y);
     }
