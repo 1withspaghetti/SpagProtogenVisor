@@ -75,3 +75,20 @@ static void interpolateVector(vector<Point>& currentVector, vector<Point>& targe
         currentVector[i] = currentVector[i] + (targetVector[i] - currentVector[i]) * amount;
     }
 }
+
+static bool pointInPolygon(vector<Point>& vector, Point p) {
+    bool inside = false;
+    Point a = vector[0];
+    for (int i = 1; i <= vector.size(); i++) {
+        Point b = vector[i % vector.size()];
+
+        if (p.y > min(a.y, b.y) && p.y <= max(a.y, b.y) && p.x <= max(a.x, b.x) && a.y != b.y) {
+            double xIntersection = (p.y - a.y) * (b.x - a.x) / (b.y - a.y) + a.x;
+            if (a.x == b.x || p.x <= xIntersection) {
+                inside = !inside;
+            }
+        }
+
+        a = b;
+    }
+}
