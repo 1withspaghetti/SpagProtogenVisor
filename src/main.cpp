@@ -4,6 +4,7 @@
 #include "components/FaceMatrix.h"
 #include "components/HeadphoneMatrix.h"
 #include "components/OLEDDisplay.h"
+#include "components/EmotionManager.h"
 
 
 // ############################
@@ -44,13 +45,16 @@
 void(* resetFunc) (void) = 0;
 
 // Neo matrix object for face
-FaceMatrix face_matrix = FaceMatrix(0, 4);
+FaceMatrix face_matrix = FaceMatrix(4);
 
 // Neo matrix object for headphones
 HeadphoneMatrix headphone_matrix = HeadphoneMatrix();
 
 // OLED Display object
 OLEDDisplay display = OLEDDisplay();
+
+// Emotion Manager object
+EmotionManager emotion = EmotionManager(0);
 
 
 // ############################
@@ -70,8 +74,6 @@ float col[3] = {0,50,255};
 uint16_t color = Adafruit_NeoMatrix::Color(0,170,255);
 uint16_t headphone_color = Adafruit_NeoMatrix::Color(0,50,255);
 uint16_t error_color = Adafruit_NeoMatrix::Color(255,0,0);
-
-int emotion = 0;
 
 int mic_max_diff = 0;
 int mic_avg_time = 0;
@@ -103,12 +105,9 @@ void setup() {
 
   randomSeed(analogRead(0));
 
-  // NEO Matrix
+  // NEO Matrixes
   face_matrix.setup();
-  face_matrix.display(color);
-
   headphone_matrix.setup();
-  headphone_matrix.display(headphone_color);
 
   // OLED Display
   display.setup();
@@ -122,6 +121,11 @@ void setup() {
 // ############################
 
 void loop() {
+
+  // Update face vectors
+  emotion.tick();
+
+
   // Handle Microphone
   /*Serial.print("diff:");
   Serial.print(mic_max_diff);
@@ -154,22 +158,22 @@ void loop() {
   //Serial.println("R: "+String(col[0])+" G: "+String(col[1])+" B: "+String(col[2])+" Hue: "+String(hue));
 
   // Override for error emotion
-  if (emotion == 6) color = error_color;
+  if (emotion.getEmotion() == 6) color = error_color;
 
   // Audio Visualizer
-  if (emotion == 7) {
+  if (emotion.getEmotion() == 7) {
     float new_offset = (mic_max_diff - mic_avg_total / mic_avg_time) / 5.0;
     if (new_offset > offset) offset = new_offset; // If the new value is bigger, set it
     else offset = (offset * 2 + new_offset) / 3; // else, slowly decrease to new value
     offset = constrain(offset, 0, 4);
   }
   
-  face_matrix.tick(0);
-  face_matrix.display(color);
+
+  face_matrix.display(color, emotion.getEyeVector(), emotion.getMouthVector());
 
 
   if (hasChange) {
-    display.render(emotion, 0, brightness, mic_active);
+    display.render(brightness, mic_active, emotion.getEyeVector(), emotion.getMouthVector());
     hasChange = false;
   }
 
@@ -224,9 +228,11 @@ void loop() {
     }
     if (buttonPressed) {
       if (newEmotion > -1) {
+        // Handle headphone matrix changing color when error emotion is entered/left
         if (newEmotion == 6) headphone_matrix.display(error_color);
-        else if (emotion == 6) headphone_matrix.display(headphone_color);
-        // TODO: set emotion
+        else if (emotion.getEmotion() == 6) headphone_matrix.display(headphone_color);
+        
+        emotion.setEmotion(newEmotion);
       } else {
         hasChange = true; // Only non-emotion changes need to be updated immediatly, emotions will update during blink
       }

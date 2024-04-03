@@ -23,7 +23,7 @@ void OLEDDisplay::setup() {
     display->display();
 }
 
-void OLEDDisplay::render(int emotion, int eye_frame, int brightness, bool mic_active) {
+void OLEDDisplay::render(int brightness, bool mic_active, vector<Point>& eyeVector, vector<Point>& mouthVector) {
     display->clearDisplay();
     display->clearDisplay();
 

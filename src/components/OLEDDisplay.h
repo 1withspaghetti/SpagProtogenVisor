@@ -2,7 +2,9 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include <Wire.h>
-#include <definitions/Icons.h>
+#include "definitions/Icons.h"
+#include "util/VectorUtil.h"
+
 
 class OLEDDisplay {
     private:
@@ -13,7 +15,7 @@ class OLEDDisplay {
         OLEDDisplay(int initialMenu = 0);
         ~OLEDDisplay();
         void setup();
-        void render(int emotion, int eye_frame, int brightness, bool mic_active);
+        void render(int brightness, bool mic_active, vector<Point>& eyeVector, vector<Point>& mouthVector);
         void setMenu(int menu);
         int getMenu();
 };
