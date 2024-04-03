@@ -7,8 +7,8 @@ void interpolateVector(vector<Point>& currentVector, vector<Point>& targetVector
         // Pairs each of the target points with the closest current point
         bool *const taken = new bool[currentVector.size()];
         for (int i = 0; i < targetVector.size(); i++) {
-            double closestDistance;
-            int closestIndex;
+            double closestDistance = double(INFINITY);
+            int closestIndex = 0;
             for (int j = 0; j < currentVector.size(); j++) {
                 if (!taken[j]) {
                     double distance = currentVector[j].distance(targetVector[i]);
