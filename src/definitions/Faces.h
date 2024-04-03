@@ -1,3 +1,6 @@
+#ifndef FACES_H
+#define FACES_H
+
 #include <Arduino.h>
 
 #define MOUTHS 4
@@ -294,3 +297,5 @@ int getEyeIndex(int e) {
     default: return 0;
   }
 }
+
+#endif

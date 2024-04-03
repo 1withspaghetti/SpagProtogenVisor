@@ -1,10 +1,10 @@
 #include "ColorUtil.h"
 
-static float fract(float x) { return x - int(x); }
+float fract(float x) { return x - int(x); }
 
-static float mix(float a, float b, float t) { return a + (b - a) * t; }
+float mix(float a, float b, float t) { return a + (b - a) * t; }
 
-static float* hsv2rgb(float h, float s, float b, float* rgb) {
+float* hsv2rgb(float h, float s, float b, float* rgb) {
   rgb[0] = b * mix(1.0, constrain(fabs(fract(h + 1.0) * 6.0 - 3.0) - 1.0, 0.0, 1.0), s);
   rgb[1] = b * mix(1.0, constrain(fabs(fract(h + 0.6666666) * 6.0 - 3.0) - 1.0, 0.0, 1.0), s);
   rgb[2] = b * mix(1.0, constrain(fabs(fract(h + 0.3333333) * 6.0 - 3.0) - 1.0, 0.0, 1.0), s);

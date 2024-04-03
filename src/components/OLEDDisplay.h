@@ -2,8 +2,7 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include <Wire.h>
-#include "Faces.h"
-#include "Icons.h"
+#include <definitions/Icons.h>
 
 class OLEDDisplay {
     private:

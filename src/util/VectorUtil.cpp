@@ -1,6 +1,6 @@
 #include "VectorUtil.h"
 
-static void interpolateVector(vector<Point>& currentVector, vector<Point>& targetVector, double amount) {
+void interpolateVector(vector<Point>& currentVector, vector<Point>& targetVector, double amount) {
 
     // If the current vector is larger than the target vector, remove points from the current vector
     if (currentVector.size() > targetVector.size()) {
@@ -76,7 +76,7 @@ static void interpolateVector(vector<Point>& currentVector, vector<Point>& targe
     }
 }
 
-static bool pointInPolygon(vector<Point>& vector, Point p) {
+bool pointInPolygon(vector<Point>& vector, Point p) {
     bool inside = false;
     Point a = vector[0];
     for (int i = 1; i <= vector.size(); i++) {
@@ -91,4 +91,5 @@ static bool pointInPolygon(vector<Point>& vector, Point p) {
 
         a = b;
     }
+    return inside;
 }

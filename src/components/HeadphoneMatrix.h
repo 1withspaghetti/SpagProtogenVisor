@@ -1,5 +1,5 @@
 #include <Adafruit_NeoMatrix.h>
-#include <Icons.h>
+#include <definitions/Icons.h>
 
 class HeadphoneMatrix {
     private:

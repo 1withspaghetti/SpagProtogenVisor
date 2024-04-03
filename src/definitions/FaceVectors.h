@@ -2,6 +2,9 @@
 #include <vector>
 using namespace std;
 
+#ifndef FACE_VECTORS_H
+#define FACE_VECTORS_H
+
 struct Point {
     double x, y;
     Point(double x, double y) : x(x), y(y) {}
@@ -69,3 +72,5 @@ const vector<Point>& FaceVectors::getMouthVector(int emotion) {
             return mouth_1;
     }
 }
+
+#endif

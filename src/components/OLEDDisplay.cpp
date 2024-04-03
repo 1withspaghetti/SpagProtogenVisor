@@ -36,23 +36,10 @@ void OLEDDisplay::render(int emotion, int eye_frame, int brightness, bool mic_ac
     // Proto Display
     display->drawBitmap(0, 16, proto_display_bmp, PROTO_DISPLAY_WIDTH, PROTO_DISPLAY_HEIGHT, SSD1306_WHITE);
     // Current Face
-    for (int y = 0; y < FACE_HEIGHT; y++) {
-        uint16_t row = pgm_read_word(&((!mic_active ? face : face_talking)[getMouthIndex(emotion)][y]));
-        for (int x = 0; x < FACE_WIDTH; x++) {
-            if (row >> (FACE_WIDTH-1 - x) & 0b1 == 1) {
-            display->fillRect(16 + x*2, 16 + 26 + y*2, 2, 2, SSD1306_WHITE);
-            }
-        }
-    }
-    // Current Eyes
-    for (int y = 0; y < EYE_HEIGHT; y++) {
-        uint16_t row = pgm_read_byte(&(eye[getEyeIndex(emotion)][eye_frame][y]));
-        for (int x = 0; x < EYE_WIDTH; x++) {
-            if (row >> (EYE_WIDTH-1 - x) & 0b1 == 1) {
-            display->fillRect(13 + x*2, 16 + 15 + y*2, 2, 2, SSD1306_WHITE);
-            }
-        }
-    }
+    
+    // TODO: Draw face with vectors
+
+    
 
     // Brightness Indicator
     display->drawBitmap(64 + 1, 16 + 31, brightness_bmp, BRIGHTNESS_BMP_WIDTH, BRIGHTNESS_BMP_HEIGHT, SSD1306_WHITE);
@@ -95,35 +82,5 @@ void OLEDDisplay::render(int emotion, int eye_frame, int brightness, bool mic_ac
 }
 
 void OLEDDisplay::drawProtoIcon(int rel_x, int rel_y, int emotionIcon) {
-    // Face
-    for (int y = 0; y < FACE_HEIGHT; y++) {
-        uint16_t row = pgm_read_word(&(face[getMouthIndex(emotionIcon)][y]));
-        for (int x = 0; x < FACE_WIDTH; x++) {
-            if (row >> (FACE_WIDTH-1 - x) & 0b1 == 1) {
-                display->drawPixel(rel_x + 3 + x, rel_y + 10 + y, SSD1306_WHITE);
-            }
-        }
-    }
-
-    // Blush
-    if (emotionIcon == 5) {
-        for (int y = 0; y < FACE_HEIGHT; y++) {
-            uint16_t row = pgm_read_word(&(face_blush[y]));
-            for (int x = 0; x < FACE_WIDTH; x++) {
-                if (row >> (FACE_WIDTH-1 - x) & 0b1 == 1) {
-                display->drawPixel(rel_x + 3 + x, rel_y + 10 + y, SSD1306_WHITE);
-                }
-            }
-        }
-    }
-
-    // Eyes
-    for (int y = 0; y < EYE_HEIGHT; y++) {
-        uint16_t row = pgm_read_byte(&(eye[getEyeIndex(emotionIcon)][0][y]));
-        for (int x = 0; x < EYE_WIDTH; x++) {
-            if (row >> (EYE_WIDTH-1 - x) & 0b1 == 1) {
-                display->drawPixel(rel_x + 0 + x, rel_y + 1 + y, SSD1306_WHITE);
-            }
-        }
-    }
+    // TODO: Draw icon with vectors
 }

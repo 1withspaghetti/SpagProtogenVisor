@@ -1,3 +1,6 @@
+#ifndef ICONS_H
+#define ICONS_H
+
 #include <Arduino.h>
 
 #define PROTO_DISPLAY_WIDTH 64
@@ -86,3 +89,5 @@ const PROGMEM uint8_t headphone_ico[HEADPHONE_HEIGHT] = {
   0b11111111,
   0b00000000
 };
+
+#endif

@@ -1,7 +1,7 @@
 #include "FaceMatrix.h"
 
 // Neo Matrix Constants
-#define NEO_MATRIX_DATA_PIN 3
+#define NEO_MATRIX_DATA_PIN D4
 #define NEO_MATRIX_WIDTH 48
 #define NEO_MATRIX_HEIGHT 8
 

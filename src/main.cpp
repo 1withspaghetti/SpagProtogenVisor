@@ -1,11 +1,6 @@
 #include <Arduino.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_NeoMatrix.h>
-#include <Adafruit_SSD1306.h>
 
-#include <Faces.h>
-#include <Icons.h>
-#include "util/Util.h"
+#include "util/ColorUtil.h"
 #include "components/FaceMatrix.h"
 #include "components/HeadphoneMatrix.h"
 #include "components/OLEDDisplay.h"
@@ -16,15 +11,15 @@
 // ############################
 
 // Microphone Constants
-#define MICROPHONE_PIN A6
+#define MICROPHONE_PIN A7
 
 // Receiver Constants
 #define RF_DIGITAL_HIGH 5
 #define RF_DIGITAL_LOW 4
-#define MENU_BUTTON_1 9
-#define MENU_BUTTON_2 8
-#define MENU_BUTTON_3 7
-#define MENU_BUTTON_4 6
+#define MENU_BUTTON_1 D6
+#define MENU_BUTTON_2 D7
+#define MENU_BUTTON_3 D8
+#define MENU_BUTTON_4 D9
 
 // ############################
 // #     Other Constants      #
@@ -110,7 +105,7 @@ void setup() {
 
   // NEO Matrix
   face_matrix.setup();
-  face_matrix.display(color, offset);
+  face_matrix.display(color);
 
   headphone_matrix.setup();
   headphone_matrix.display(headphone_color);
@@ -169,12 +164,12 @@ void loop() {
     offset = constrain(offset, 0, 4);
   }
   
-  face_matrix.tick();
-  face_matrix.display(color, offset);
+  face_matrix.tick(0);
+  face_matrix.display(color);
 
 
   if (hasChange) {
-    display.render(emotion, face_matrix.getEyeFrame(), brightness, mic_active);
+    display.render(emotion, 0, brightness, mic_active);
     hasChange = false;
   }
 
@@ -231,7 +226,7 @@ void loop() {
       if (newEmotion > -1) {
         if (newEmotion == 6) headphone_matrix.display(error_color);
         else if (emotion == 6) headphone_matrix.display(headphone_color);
-        face_matrix.setEmotion(newEmotion);
+        // TODO: set emotion
       } else {
         hasChange = true; // Only non-emotion changes need to be updated immediatly, emotions will update during blink
       }
