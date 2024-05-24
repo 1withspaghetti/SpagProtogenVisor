@@ -31,9 +31,26 @@ void FaceMatrix::display(uint16_t color, vector<Point>& eyeVector, vector<Point>
 
     matrix->fillScreen(0);
 
-    
+    // Left eye ()
+    Serial.println("Left Eye");
+    matrix->fillRect(0, 0, 8, 8, color);
 
     matrix->show();
+}
+
+int8_t FaceMatrix::getPixelBrightness(Point point, vector<Point>& vector) {
+    int8_t hits = 0;
+    Point p = {0, 0};
+    for (double y = point.x+0.0; y < point.x+1; y += (1/8)) {
+        for (double x = point.y+0.0; x < point.y+1; x += (1/8)) {
+            p.x = x;
+            p.y = y;
+            if (pointInPolygon(vector, p)) {
+                hits++;
+            }
+        }
+    }
+    return hits*(255.0/64);
 }
 
 void FaceMatrix::setBrightness(int newBrightness) {

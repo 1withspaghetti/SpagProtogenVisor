@@ -216,7 +216,7 @@ void loop() {
       if (menu == 0) newEmotion = 2;
       else if (menu == 1) newEmotion = 5;
       else if (menu == 2) menu = 3;
-      else if (menu == 3) resetFunc();
+      else if (menu == 3) /*resetFunc();*/ Serial.println("Reset");
     } else if (digitalRead(MENU_BUTTON_4) == 1) {
       buttonPressed = true;
       if (menu == 0) menu = 1;
