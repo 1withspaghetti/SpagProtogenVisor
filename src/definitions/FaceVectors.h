@@ -26,6 +26,10 @@ class FaceVectors {
 
     private:
         static const vector<Point> eye_1;
+        static const vector<Point> eye_2;
+        static const vector<Point> eye_3;
+        static const vector<Point> eye_4;
+        static const vector<Point> eye_5;
         static const vector<Point> mouth_1;
 };
 

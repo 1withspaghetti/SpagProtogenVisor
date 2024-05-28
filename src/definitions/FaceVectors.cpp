@@ -40,7 +40,52 @@ Point Point::copy() {
 }
 
 // Starting at left-most point, moving clockwise
-const vector<Point> FaceVectors::eye_1 = {Point(0,6.5), Point(3,1.5), Point(5,1.5), Point(8,6.5), Point(6,6.5), Point(4,4), Point(2,6.5)}; // ^w^
+const vector<Point> FaceVectors::eye_1 = {
+    Point( 0, 6.5 ), 
+    Point( 3, 1.5 ), 
+    Point( 5, 1.5 ), 
+    Point( 8, 6.5 ), 
+    Point( 6, 6.5 ), 
+    Point( 4, 4 ), 
+    Point( 2, 6.5 )
+}; // ^w^
+const vector<Point> FaceVectors::eye_2 = {
+    Point( 0, 6 ), 
+    Point( 1, 3 ), 
+    Point( 4, 2 ), 
+    Point( 7, 3 ), 
+    Point( 8, 6 ), 
+    Point( 5, 5 ), 
+    Point( 3, 5 )
+}; // ^w^ but less
+const vector<Point> FaceVectors::eye_3 = {
+    Point( 0, 4 ), 
+    Point( 1.5, 2.5 ), 
+    Point( 4, 2 ), 
+    Point( 7, 3 ), 
+    Point( 8, 5 ), 
+    Point( 5, 6 ), 
+    Point( 2, 6 )
+}; // almond
+const vector<Point> FaceVectors::eye_4 = {
+    Point( 0.0, 2.0 ), 
+    Point( 3.5, 2.5 ), 
+    Point( 6.5, 3.5 ), 
+    Point( 8.0, 6.0 ), 
+    Point( 5.0, 6.5 ), 
+    Point( 2.0, 6.0 ), 
+    Point( 0.5, 4.5 )
+}; // almond
+const vector<Point> FaceVectors::eye_5 = {
+    Point( 1.0, 4.0 ), 
+    Point( 2.0, 2.0 ), 
+    Point( 4.0, 1.0 ), 
+    Point( 6.0, 2.0 ), 
+    Point( 7.0, 4.0 ), 
+    Point( 6.0, 6.0 ), 
+    Point( 4.0, 7.0 ),
+    Point( 2.0, 6.0 )
+}; // OwO
 
 const vector<Point> FaceVectors::mouth_1 = {Point(1,1), Point(6,1), Point(6,6), Point(1,6)}; // ^w^
 
