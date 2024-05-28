@@ -14,6 +14,9 @@ struct Point {
     Point operator-(Point p);
     Point operator*(double d);
     Point operator/(double d);
+    bool operator==(Point p);
+    bool operator!=(Point p);
+    Point copy();
 };
 
 class FaceVectors {

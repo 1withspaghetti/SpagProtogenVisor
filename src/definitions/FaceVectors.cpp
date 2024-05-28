@@ -29,9 +29,18 @@ Point Point::operator*(double d) {
 Point Point::operator/(double d) {
     return Point(x / d, y / d);
 }
+bool Point::operator==(Point p) {
+    return x == p.x && y == p.y;
+}
+bool Point::operator!=(Point p) {
+    return x != p.x || y != p.y;
+}
+Point Point::copy() {
+    return Point(x, y);
+}
 
-
-const vector<Point> FaceVectors::eye_1 = {Point(1,1), Point(6,1), Point(6,6), Point(1,6)}; // ^w^
+// Starting at left-most point, moving clockwise
+const vector<Point> FaceVectors::eye_1 = {Point(0,6.5), Point(3,1.5), Point(5,1.5), Point(8,6.5), Point(6,6.5), Point(4,4), Point(2,6.5)}; // ^w^
 
 const vector<Point> FaceVectors::mouth_1 = {Point(1,1), Point(6,1), Point(6,6), Point(1,6)}; // ^w^
 

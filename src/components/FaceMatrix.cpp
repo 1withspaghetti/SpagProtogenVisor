@@ -1,11 +1,18 @@
 #include "FaceMatrix.h"
 
 // Neo Matrix Constants
-#define NEO_MATRIX_DATA_PIN D4
+#define NEO_MATRIX_DATA_PIN 1
 #define NEO_MATRIX_WIDTH 48
 #define NEO_MATRIX_HEIGHT 8
 
 #define NEO_MATRIX_BRIGHTNESS_MULTIPLIER 3 // Brightness can be changed from 1-10 times this number
+
+// Face Constants
+#define FACE_WIDTH 16
+#define FACE_HEIGHT 8
+
+#define EYE_WIDTH 8
+#define EYE_HEIGHT 8
 
 
 FaceMatrix::FaceMatrix(int initialBrightness) {
@@ -33,24 +40,32 @@ void FaceMatrix::display(uint16_t color, vector<Point>& eyeVector, vector<Point>
 
     // Left eye ()
     Serial.println("Left Eye");
-    matrix->fillRect(0, 0, 8, 8, color);
+    for (double y = 0; y < EYE_HEIGHT; y++) {
+        for (double x = 0; x < EYE_WIDTH; x++) {
+            uint8_t brightness = getPixelBrightness({x, y}, eyeVector);
+            if (brightness > 0) {
+                matrix->drawPixel(x, y, matrix->Color(0, 0, brightness));
+            }
+            // if (pointInPolygon(eyeVector, {x, y})) {
+            //     matrix->drawPixel(x, y, color);
+            // }
+        }
+    }
 
     matrix->show();
 }
 
-int8_t FaceMatrix::getPixelBrightness(Point point, vector<Point>& vector) {
-    int8_t hits = 0;
-    Point p = {0, 0};
-    for (double y = point.x+0.0; y < point.x+1; y += (1/8)) {
-        for (double x = point.y+0.0; x < point.y+1; x += (1/8)) {
-            p.x = x;
-            p.y = y;
+uint8_t FaceMatrix::getPixelBrightness(Point point, vector<Point>& vector) {
+    uint8_t hits = 0;
+    Point p = {0.0, 0.0};
+    for (p.y = point.y+0.0; p.y < point.y+1; p.y += (1.0/8)) {
+        for (p.x = point.x+0.0; p.x < point.x+1; p.x += (1.0/8)) {
             if (pointInPolygon(vector, p)) {
                 hits++;
             }
         }
     }
-    return hits*(255.0/64);
+    return floor(hits*(255.0/64.0));
 }
 
 void FaceMatrix::setBrightness(int newBrightness) {

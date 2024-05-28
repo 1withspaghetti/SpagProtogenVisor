@@ -1,12 +1,13 @@
 #include <Adafruit_NeoMatrix.h>
 #include "util/VectorUtil.h"
+
 using namespace std;
 
 class FaceMatrix {
     private:
         Adafruit_NeoMatrix *matrix;
         int brightness;
-        int8_t getPixelBrightness(Point p, vector<Point>& vector);
+        uint8_t getPixelBrightness(Point p, vector<Point>& vector);
     public:
         FaceMatrix(int initialBrightness = 10);
         ~FaceMatrix();

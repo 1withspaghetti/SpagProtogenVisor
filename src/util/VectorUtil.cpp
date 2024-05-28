@@ -1,78 +1,74 @@
 #include "VectorUtil.h"
 
-void interpolateVector(vector<Point>& currentVector, vector<Point>& targetVector, double amount) {
+void interpolateVector(vector<Point>& current, vector<Point>& target, double amount) {
 
-    // If the current vector is larger than the target vector, remove points from the current vector
-    if (currentVector.size() > targetVector.size()) {
-        // Pairs each of the target points with the closest current point
-        bool *const taken = new bool[currentVector.size()];
-        for (int i = 0; i < targetVector.size(); i++) {
-            double closestDistance = double(INFINITY);
-            int closestIndex = 0;
-            for (int j = 0; j < currentVector.size(); j++) {
-                if (!taken[j]) {
-                    double distance = currentVector[j].distance(targetVector[i]);
-                    if (distance < closestDistance) {
-                        closestDistance = distance;
-                        closestIndex = j;
-                    }
+    if (current.size() < target.size()) {
+        
+        if (current.size() == 0) {
+            current.push_back(target[0].copy());
+        }
+
+        // Search points ahead to see if they are closer than the current index pair, if so, insert points in between
+        // But only search far enough ahead for the in between points to fit in the difference between the current and target lengths
+        for (int c = 0; c < current.size(); c++) {
+            
+            double minDistance = double(INFINITY);
+            int minIndexT = 0;
+
+            for (int t = c; t < min(c + target.size() - current.size(), target.size() - 1); t++) {
+                double distance = current[c].distance(target[t]);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    minIndexT = t;
                 }
             }
-            taken[closestIndex] = true;
-        }
-        // Delete points that do not have a pair
-        int offset = 0;
-        for (int i = 0; i < currentVector.size(); i++) {
-            if (!taken[i]) {
-                currentVector.erase(currentVector.begin() + i - offset);
-                offset++; // Increment offset to account for the removed point when indexing
+
+            if (minIndexT != c) {
+                Point toCopy = target[minIndexT];
+                for (int i = 0; i < minIndexT - c; i++) {
+                    current.insert(current.begin() + c, toCopy.copy());
+                }
             }
+
+            if (current.size() == target.size()) break;
         }
-        delete[] taken;
+
+        // Handle the case where the current vector is still smaller than the target vector
+        for (int i = 0; i < target.size() - current.size(); i++) {
+            current.push_back(current[current.size() - 1].copy());
+        }
+    } else if (current.size() > target.size()) {
+        
+        // Search points ahead to see if they are closer than the current index pair, if so, remove points in between
+        for (int c = 0; c < current.size(); c++) {
+            
+            double minDistance = double(INFINITY);
+            int minIndexT = 0;
+
+            for (int t = c; t < min(c + current.size() - target.size(), target.size() - 1); t++) {
+                double distance = current[t].distance(target[c]);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    minIndexT = t;
+                }
+            }
+
+            if (minIndexT != c) {
+                current.erase(current.begin() + c, current.begin() + minIndexT);
+            }
+
+            if (current.size() == target.size()) break;
+        }
+
+        // Handle the case where the current vector is still larger than the target vector
+        for (int i = 0; i < current.size() - target.size(); i++) {
+            current.pop_back();
+        }
     }
 
-    // If the current vector is smaller than the target vector, add points to the current vector
-    else
-    if (currentVector.size() < targetVector.size()) {
-        // Pairs each of the current points with the closest target point
-        bool *const taken = new bool[targetVector.size()];
-        for (int i = 0; i < currentVector.size(); i++) {
-            double closestDistance;
-            int closestIndex;
-            for (int j = 0; j < targetVector.size(); j++) {
-                if (!taken[j]) {
-                    double distance = currentVector[i].distance(targetVector[j]);
-                    if (distance < closestDistance) {
-                        closestDistance = distance;
-                        closestIndex = j;
-                    }
-                }
-            }
-            taken[closestIndex] = true;
-        }
-        // For each target point that does not have a pair, clone the closest current point
-        int offset = 0;
-        for (int i = 0; i < targetVector.size(); i++) {
-            if (!taken[i]) {
-                double closestDistance;
-                int closestIndex;
-                for (int j = 0; j < currentVector.size(); j++) {
-                    double distance = currentVector[j].distance(targetVector[i]);
-                    if (distance < closestDistance) {
-                        closestDistance = distance;
-                        closestIndex = j;
-                    }
-                }
-                currentVector.insert(currentVector.begin() + i + offset, currentVector[closestIndex]);
-                offset++; // Increment offset to account for the new point when indexing
-            }
-        }
-        delete[] taken;
-    }
-    // Once the current vector is the same size as the target vector, interpolate each point
-
-    for (int i = 0; i < currentVector.size(); i++) {
-        currentVector[i] = currentVector[i] + (targetVector[i] - currentVector[i]) * amount;
+    // Interpolate the points
+    for (int i = 0; i < current.size(); i++) {
+        current[i].moveTowards(target[i], amount);
     }
 }
 
