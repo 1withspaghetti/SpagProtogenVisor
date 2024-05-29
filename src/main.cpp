@@ -17,10 +17,10 @@
 // Receiver Constants
 #define RF_DIGITAL_HIGH 5
 #define RF_DIGITAL_LOW 4
-#define MENU_BUTTON_1 D6
-#define MENU_BUTTON_2 D7
-#define MENU_BUTTON_3 D8
-#define MENU_BUTTON_4 D9
+#define MENU_BUTTON_1 D9
+#define MENU_BUTTON_2 D8
+#define MENU_BUTTON_3 D7
+#define MENU_BUTTON_4 D6
 
 // ############################
 // #     Other Constants      #
@@ -133,23 +133,24 @@ void loop() {
   Serial.print((float)mic_avg_total / mic_avg_time);
   Serial.print(" baseline:");
   Serial.println((float)mic_avg_total / mic_avg_time + MIC_TRIGGER);*/
-  if (mic_max_diff >= (float)mic_avg_total / mic_avg_time + MIC_TRIGGER) {
-    mic_triggers++;
-  }
-  if (mic_avg_time % MIC_TRIGGER_PERIOD == 0) {
-    mic_active = mic_triggers >= (MIC_TRIGGER_PERIOD / 2);
-    mic_triggers = 0;
 
-    if (mic_active != mic_was_active) hasChange = true;
-    mic_was_active = mic_active;
+  // if (mic_max_diff >= (float)mic_avg_total / mic_avg_time + MIC_TRIGGER) {
+  //   mic_triggers++;
+  // }
+  // if (mic_avg_time % MIC_TRIGGER_PERIOD == 0) {
+  //   mic_active = mic_triggers >= (MIC_TRIGGER_PERIOD / 2);
+  //   mic_triggers = 0;
 
-    //if (mic_active) Serial.println("Mic Active");
-    //else Serial.println("");
-  }
-  if (mic_avg_time >= MIC_AVERAGE_RESET) {
-    mic_avg_total = 0;
-    mic_avg_time = 0;
-  }
+  //   if (mic_active != mic_was_active) hasChange = true;
+  //   mic_was_active = mic_active;
+
+  //   //if (mic_active) Serial.println("Mic Active");
+  //   //else Serial.println("");
+  // }
+  // if (mic_avg_time >= MIC_AVERAGE_RESET) {
+  //   mic_avg_total = 0;
+  //   mic_avg_time = 0;
+  // }
 
 
   // Face color
@@ -173,7 +174,8 @@ void loop() {
 
 
   if (hasChange) {
-    display.render(brightness, mic_active, emotion.getEyeVector(), emotion.getMouthVector());
+    Serial.println("Updating Display");
+    display.render(menu, brightness, mic_active, emotion.getEyeVector(), emotion.getMouthVector());
     hasChange = false;
   }
 
@@ -201,7 +203,7 @@ void loop() {
     int newEmotion = -1;
     if (digitalRead(MENU_BUTTON_1) == 1) {
       buttonPressed = true;
-      if (menu == 0) newEmotion = 0;
+      if (menu == 0) newEmotion = (emotion.getEmotion() + 1) % 5;
       else if (menu == 1) newEmotion = 3;
       else if (menu == 2) newEmotion = 6;
       else if (menu == 3) brightness++;

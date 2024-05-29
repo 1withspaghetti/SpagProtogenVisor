@@ -9,13 +9,12 @@
 class OLEDDisplay {
     private:
         Adafruit_SSD1306 *display;
-        int menu;
         void drawProtoIcon(int rel_x, int rel_y, int emotionIcon);
     public:
-        OLEDDisplay(int initialMenu = 0);
+        OLEDDisplay();
         ~OLEDDisplay();
         void setup();
-        void render(int brightness, bool mic_active, vector<Point>& eyeVector, vector<Point>& mouthVector);
+        void render(int menu, int brightness, bool mic_active, vector<Point>& eyeVector, vector<Point>& mouthVector);
         void setMenu(int menu);
         int getMenu();
 };

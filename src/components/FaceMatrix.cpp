@@ -38,8 +38,7 @@ void FaceMatrix::display(uint16_t color, vector<Point>& eyeVector, vector<Point>
 
     matrix->fillScreen(0);
 
-    // Left eye ()
-    Serial.println("Left Eye");
+    // Left eye
     for (double y = 0; y < EYE_HEIGHT; y++) {
         for (double x = 0; x < EYE_WIDTH; x++) {
             uint8_t brightness = getPixelBrightness({x, y}, eyeVector);

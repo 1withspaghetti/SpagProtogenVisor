@@ -93,6 +93,14 @@ const vector<Point>& FaceVectors::getEyeVector(int emotion) {
     switch (emotion) {
         case 0:
             return eye_1;
+        case 1:
+            return eye_2;
+        case 2:
+            return eye_3;
+        case 3:
+            return eye_4;
+        case 4:
+            return eye_5;
         default:
             return eye_1;
     }

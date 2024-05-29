@@ -5,9 +5,8 @@
 #define OLED_RESET     -1   // Reset pin # (or -1 if sharing Arduino reset pin)
 #define SCREEN_ADDRESS 0x3C ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
 
-OLEDDisplay::OLEDDisplay(int initialMenu) {
+OLEDDisplay::OLEDDisplay() {
     display = new Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
-    menu = initialMenu;
 }
 
 OLEDDisplay::~OLEDDisplay()
@@ -17,14 +16,14 @@ OLEDDisplay::~OLEDDisplay()
 
 void OLEDDisplay::setup() {
     if(!display->begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
-        Serial.println(F("SSD1306 allocation failed"));
-        for(;;);
+        for(;;) Serial.println(F("SSD1306 allocation failed"));
     }
     display->display();
+    delay(100);
+    display->clearDisplay();
 }
 
-void OLEDDisplay::render(int brightness, bool mic_active, vector<Point>& eyeVector, vector<Point>& mouthVector) {
-    display->clearDisplay();
+void OLEDDisplay::render(int menu, int brightness, bool mic_active, vector<Point>& eyeVector, vector<Point>& mouthVector) {
     display->clearDisplay();
 
     // Add text

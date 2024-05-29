@@ -43,25 +43,29 @@ void interpolateVector(vector<Point>& current, vector<Point>& target, double amo
         for (int c = 0; c < current.size(); c++) {
             
             double minDistance = double(INFINITY);
-            int minIndexT = 0;
+            int minIndexT = -1;
 
-            for (int t = c; t < min(c + current.size() - target.size(), target.size() - 1); t++) {
-                double distance = current[t].distance(target[c]);
+            int min1 = c + current.size() - target.size();
+            int min2 = target.size() - 1;
+            for (int t = c; t < min(min1, min2); t++) {
+                double distance = current[c].distance(target[t]);
                 if (distance < minDistance) {
                     minDistance = distance;
                     minIndexT = t;
                 }
             }
 
-            if (minIndexT != c) {
-                current.erase(current.begin() + c, current.begin() + minIndexT);
+            if (minIndexT > 0 && minIndexT != c) {
+                Serial.println("Removing at "+ String(c) + " to " + String(minIndexT));
+                current.erase(std::next(current.begin(), c), std::next(current.begin(), minIndexT));
             }
 
             if (current.size() == target.size()) break;
         }
 
         // Handle the case where the current vector is still larger than the target vector
-        for (int i = 0; i < current.size() - target.size(); i++) {
+        int toRemove = current.size() - target.size();
+        for (int i = 0; i < toRemove; i++) {
             current.pop_back();
         }
     }
