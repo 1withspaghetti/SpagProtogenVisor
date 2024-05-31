@@ -75,7 +75,7 @@ const vector<Point> FaceVectors::eye_4 = {
     Point( 5.0, 6.5 ), 
     Point( 2.0, 6.0 ), 
     Point( 0.5, 4.5 )
-}; // almond
+}; // mad almond
 const vector<Point> FaceVectors::eye_5 = {
     Point( 1.0, 4.0 ), 
     Point( 2.0, 2.0 ), 
@@ -87,7 +87,50 @@ const vector<Point> FaceVectors::eye_5 = {
     Point( 2.0, 6.0 )
 }; // OwO
 
-const vector<Point> FaceVectors::mouth_1 = {Point(1,1), Point(6,1), Point(6,6), Point(1,6)}; // ^w^
+const vector<Point> FaceVectors::mouth_1 = {
+    Point( 03.0, 4.5 ), 
+    Point( 05.0, 6.0 ), 
+    Point( 07.0, 6.5 ), 
+    Point( 10.0, 6.0 ), 
+    Point( 13.0, 6.5 ), 
+    Point( 16.0, 6.0 ), 
+    Point( 16.0, 7.5 ),
+    Point( 13.0, 8.0 ),
+    Point( 10.0, 7.5 ),
+    Point( 07.0, 8.0 ),
+    Point( 05.0, 7.5 ),
+    Point( 03.5, 6.5 ),
+}; // ^w^
+
+const vector<Point> FaceVectors::mouth_2 = {
+    Point( 03.0, 6.0 ), 
+    Point( 05.0, 6.5 ), 
+    Point( 07.0, 6.5 ), 
+    Point( 10.0, 6.0 ), 
+    Point( 13.0, 6.5 ), 
+    Point( 16.0, 6.0 ), 
+    Point( 16.0, 7.5 ),
+    Point( 13.0, 8.0 ),
+    Point( 10.0, 7.5 ),
+    Point( 07.0, 8.0 ),
+    Point( 05.0, 7.5 ),
+    Point( 03.5, 7.0 ),
+}; // ^-^
+
+const vector<Point> FaceVectors::mouth_3 = {
+    Point( 03.0, 8.0 ), 
+    Point( 04.0, 6.5 ), 
+    Point( 07.0, 6.0 ), 
+    Point( 10.0, 6.0 ), 
+    Point( 13.0, 6.5 ), 
+    Point( 16.0, 6.0 ), 
+    Point( 16.0, 7.5 ),
+    Point( 13.0, 8.0 ),
+    Point( 10.0, 7.5 ),
+    Point( 07.0, 7.25 ),
+    Point( 05.5, 7.5 ),
+    Point( 04.0, 7.75 ),
+}; // ^m^
 
 const vector<Point>& FaceVectors::getEyeVector(int emotion) {
     switch (emotion) {
@@ -110,6 +153,14 @@ const vector<Point>& FaceVectors::getMouthVector(int emotion) {
     switch (emotion) {
         case 0:
             return mouth_1;
+        case 1:
+            return mouth_2;
+        case 2:
+            return mouth_3;
+        case 3:
+            return mouth_1;
+        case 4:
+            return mouth_2;
         default:
             return mouth_1;
     }

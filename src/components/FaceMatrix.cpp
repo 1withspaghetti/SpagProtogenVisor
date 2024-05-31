@@ -45,11 +45,39 @@ void FaceMatrix::display(uint16_t color, vector<Point>& eyeVector, vector<Point>
             if (brightness > 0) {
                 matrix->drawPixel(x, y, matrix->Color(0, 0, brightness));
             }
-            // if (pointInPolygon(eyeVector, {x, y})) {
-            //     matrix->drawPixel(x, y, color);
-            // }
         }
     }
+
+    // Right eye
+    for (double y = 0; y < EYE_HEIGHT; y++) {
+        for (double x = 0; x < EYE_WIDTH; x++) {
+            uint8_t brightness = getPixelBrightness({x, y}, eyeVector);
+            if (brightness > 0) {
+                matrix->drawPixel(NEO_MATRIX_WIDTH - 1 - x, y, matrix->Color(0, 0, brightness));
+            }
+        }
+    }
+
+    // Left Mouth
+    for (double y = 0; y < FACE_HEIGHT; y++) {
+        for (double x = 0; x < FACE_WIDTH; x++) {
+            uint8_t brightness = getPixelBrightness({x, y}, mouthVector);
+            if (brightness > 0) {
+                matrix->drawPixel(x + EYE_WIDTH, y, matrix->Color(0, 0, brightness));
+            }
+        }
+    }
+
+    // Right Mouth
+    for (double y = 0; y < FACE_HEIGHT; y++) {
+        for (double x = 0; x < FACE_WIDTH; x++) {
+            uint8_t brightness = getPixelBrightness({x, y}, mouthVector);
+            if (brightness > 0) {
+                matrix->drawPixel(NEO_MATRIX_WIDTH - EYE_WIDTH - 1 - x, y, matrix->Color(0, 0, brightness));
+            }
+        }
+    }
+
 
     matrix->show();
 }
