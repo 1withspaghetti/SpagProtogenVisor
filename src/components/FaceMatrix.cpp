@@ -37,7 +37,7 @@ void FaceMatrix::display(CRGB color, vector<Point>& eyeVector, vector<Point>& mo
     // Left eye
     for (double y = 0; y < EYE_HEIGHT; y++) {
         for (double x = 0; x < EYE_WIDTH; x++) {
-            uint8_t cover = getPixelBrightness({x, y}, eyeVector);
+            uint8_t cover = getPixelCoverage({x, y}, eyeVector);
             if (cover > 0) {
                 setPixel(x, y, CRGB(color).nscale8(cover));
             }
@@ -47,7 +47,7 @@ void FaceMatrix::display(CRGB color, vector<Point>& eyeVector, vector<Point>& mo
     // Right eye
     for (double y = 0; y < EYE_HEIGHT; y++) {
         for (double x = 0; x < EYE_WIDTH; x++) {
-            uint8_t cover = getPixelBrightness({x, y}, eyeVector);
+            uint8_t cover = getPixelCoverage({x, y}, eyeVector);
             if (cover > 0) {
                 setPixel(NEO_MATRIX_WIDTH - 1 - x, y, CRGB(color).nscale8(cover));
             }
@@ -57,7 +57,7 @@ void FaceMatrix::display(CRGB color, vector<Point>& eyeVector, vector<Point>& mo
     // Left Mouth
     for (double y = 4; y < FACE_HEIGHT; y++) { // There is a optimization here that assumes the mouth is always in the bottom half of the face
         for (double x = 0; x < FACE_WIDTH; x++) {
-            uint8_t cover = getPixelBrightness({x, y}, mouthVector);
+            uint8_t cover = getPixelCoverage({x, y}, mouthVector);
             if (cover > 0) {
                 setPixel(x + EYE_WIDTH, y, CRGB(color).nscale8(cover));
             }
@@ -67,7 +67,7 @@ void FaceMatrix::display(CRGB color, vector<Point>& eyeVector, vector<Point>& mo
     // Right Mouth
     for (double y = 4; y < FACE_HEIGHT; y++) { // There is a optimization here that assumes the mouth is always in the bottom half of the face
         for (double x = 0; x < FACE_WIDTH; x++) {
-            uint8_t cover = getPixelBrightness({x, y}, mouthVector);
+            uint8_t cover = getPixelCoverage({x, y}, mouthVector);
             if (cover > 0) {
                 setPixel(NEO_MATRIX_WIDTH - EYE_WIDTH - 1 - x, y, CRGB(color).nscale8(cover));
             }
@@ -89,7 +89,7 @@ void FaceMatrix::setPixel(uint8_t x, uint8_t y, CRGB color) {
     ] = color;
 }
 
-uint8_t FaceMatrix::getPixelBrightness(Point point, vector<Point>& vector) {
+uint8_t FaceMatrix::getPixelCoverage(Point point, vector<Point>& vector) {
     uint8_t hits = 0;
 
     // For optimization, check corners of the pixel first

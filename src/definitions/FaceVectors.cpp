@@ -1,45 +1,10 @@
 #include "FaceVectors.h"
 
-
-double Point::distance(Point p) {
-    return sqrt(pow(x - p.x, 2) + pow(y - p.y, 2));
-}
-Point& Point::moveTowards(Point p, double d) {
-    double distance = this->distance(p);
-    if (distance > d) {
-        double angle = atan2(p.y - y, p.x - x);
-        x += cos(angle) * d;
-        y += sin(angle) * d;
-    }
-    else {
-        x = p.x;
-        y = p.y;
-    }
-    return *this;
-}
-Point Point::operator+(Point p) {
-    return Point(x + p.x, y + p.y);
-}
-Point Point::operator-(Point p) {
-    return Point(x - p.x, y - p.y);
-}
-Point Point::operator*(double d) {
-    return Point(x * d, y * d);
-}
-Point Point::operator/(double d) {
-    return Point(x / d, y / d);
-}
-bool Point::operator==(Point p) {
-    return x == p.x && y == p.y;
-}
-bool Point::operator!=(Point p) {
-    return x != p.x || y != p.y;
-}
-Point Point::copy() {
-    return Point(x, y);
-}
-
+// ==============================================================================
+//                               EYE VECTORS
+// ==============================================================================
 // Starting at left-most point, moving clockwise
+
 const vector<Point> FaceVectors::eye_1 = {
     Point( 0, 6.5 ), 
     Point( 3, 1.5 ), 
@@ -87,6 +52,12 @@ const vector<Point> FaceVectors::eye_5 = {
     Point( 2.0, 6.0 )
 }; // OwO
 
+
+// ==============================================================================
+//                               MOUTH VECTORS
+// ==============================================================================
+// Starting at left-most point, moving clockwise
+
 const vector<Point> FaceVectors::mouth_1 = {
     Point( 03.0, 4.5 ), 
     Point( 05.0, 6.0 ), 
@@ -132,20 +103,36 @@ const vector<Point> FaceVectors::mouth_3 = {
     Point( 04.0, 7.75 ),
 }; // ^m^
 
+
+// ==============================================================================
+//                            EMOTION DEFINITIONS
+// ==============================================================================
+
+#define EMOTION_HAPPY 0
+#define EMOTION_NEUTRAL 1
+#define EMOTION_SAD 2
+#define EMOTION_DETERMINED 3
+#define EMOTION_MAD 4
+#define EMOTION_EMBARRASSED 5
+
+
+#define EMOTION_TOTAL_COUNT 6
+
 const vector<Point>& FaceVectors::getEyeVector(int emotion) {
     switch (emotion) {
-        case 0:
+        case EMOTION_HAPPY:
             return eye_1;
-        case 1:
+        case EMOTION_NEUTRAL:
             return eye_2;
-        case 2:
+        case EMOTION_SAD:
             return eye_3;
-        case 3:
+        case EMOTION_DETERMINED:
             return eye_4;
-        case 4:
+        case EMOTION_MAD:
             return eye_4;
-        case 5:
+        case EMOTION_EMBARRASSED:
             return eye_5;
+        
         default:
             return eye_2;
     }
@@ -153,18 +140,19 @@ const vector<Point>& FaceVectors::getEyeVector(int emotion) {
 
 const vector<Point>& FaceVectors::getMouthVector(int emotion) {
     switch (emotion) {
-        case 0:
+        case EMOTION_HAPPY:
             return mouth_1;
-        case 1:
+        case EMOTION_NEUTRAL:
             return mouth_2;
-        case 2:
+        case EMOTION_SAD:
             return mouth_3;
-        case 3:
+        case EMOTION_DETERMINED:
             return mouth_1;
-        case 4:
+        case EMOTION_MAD:
             return mouth_3;
-        case 5:
+        case EMOTION_EMBARRASSED:
             return mouth_3;
+        
         default:
             return mouth_2;
     }

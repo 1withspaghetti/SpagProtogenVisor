@@ -1,10 +1,13 @@
 #include <Arduino.h>
 
-#include "util/ColorUtil.h"
 #include "components/FaceMatrix.h"
 #include "components/HeadphoneMatrix.h"
 #include "components/OLEDDisplay.h"
 #include "components/EmotionManager.h"
+
+// ############################
+#define DEBUG
+// ############################
 
 
 // ############################
@@ -52,17 +55,6 @@ bool hue_up = true;
 float hue = HUE_START;
 
 CRGB color = CHSV(hue * 255, 255, 255);
-CRGB error_color = CRGB(255,0,0);
-uint16_t headphone_color = Adafruit_NeoMatrix::Color(0,50,255);
-
-int mic_max_diff = 0;
-int mic_avg_time = 0;
-long mic_avg_total = 0;
-int mic_triggers = 0;
-bool mic_active = false;
-bool mic_was_active = false;
-
-float offset = 0.0;
 
 
 // ############################
@@ -121,65 +113,12 @@ void setup() {
 // ############################
 
 void loop() {
+  #ifdef DEBUG
+  long tickStart = millis();
+  #endif
 
   // Update face vectors
   emotion.tick();
-
-
-  // Handle Microphone
-  /*Serial.print("diff:");
-  Serial.print(mic_max_diff);
-  Serial.print(" avg:");
-  Serial.print((float)mic_avg_total / mic_avg_time);
-  Serial.print(" baseline:");
-  Serial.println((float)mic_avg_total / mic_avg_time + MIC_TRIGGER);*/
-
-  // if (mic_max_diff >= (float)mic_avg_total / mic_avg_time + MIC_TRIGGER) {
-  //   mic_triggers++;
-  // }
-  // if (mic_avg_time % MIC_TRIGGER_PERIOD == 0) {
-  //   mic_active = mic_triggers >= (MIC_TRIGGER_PERIOD / 2);
-  //   mic_triggers = 0;
-
-  //   if (mic_active != mic_was_active) hasChange = true;
-  //   mic_was_active = mic_active;
-
-  //   //if (mic_active) Serial.println("Mic Active");
-  //   //else Serial.println("");
-  // }
-  // if (mic_avg_time >= MIC_AVERAGE_RESET) {
-  //   mic_avg_total = 0;
-  //   mic_avg_time = 0;
-  // }
-
-
-  // Face color
-  color.setHue((uint8_t) hue);
-
-  // Override for error emotion
-  if (emotion.getEmotion() == 6) color = error_color;
-
-  // Audio Visualizer
-  if (emotion.getEmotion() == 7) {
-    float new_offset = (mic_max_diff - mic_avg_total / mic_avg_time) / 5.0;
-    if (new_offset > offset) offset = new_offset; // If the new value is bigger, set it
-    else offset = (offset * 2 + new_offset) / 3; // else, slowly decrease to new value
-    offset = constrain(offset, 0, 4);
-  }
-  
-
-  face_matrix.display(color, emotion.getEyeVector(), emotion.getMouthVector());
-
-
-  if (hasChange) {
-    Serial.println("Updating Display");
-    display.render(menu, brightness, mic_active, emotion.getEyeVector(), emotion.getMouthVector());
-    hasChange = false;
-  }
-
-
-
-  // Increment Vars
 
   // Face color
   if (hue_up) {
@@ -195,6 +134,35 @@ void loop() {
       hue_up = true;
     }
   }
+  color.setHue((uint8_t) hue);
+
+
+
+  // Display face matrix
+  #ifdef DEBUG
+  long matrixStart = millis();
+  #endif
+  face_matrix.display(color, emotion.getEyeVector(), emotion.getMouthVector());
+  #ifdef DEBUG
+  Serial.println("  Matrix Render Time: "+String(millis()-matrixStart));
+  #endif
+
+  // If needed, update OLED display
+  // if (hasChange) {
+  //   Serial.println("Updating Display");
+  //   display.render(menu, brightness, mic_active, emotion.getEyeVector(), emotion.getMouthVector());
+  //   hasChange = false;
+  // }
+
+  // Update the OLED display
+  #ifdef DEBUG
+  long oledStart = millis();
+  #endif
+  display.render(menu, brightness, false, emotion.getEyeVector(), emotion.getMouthVector());
+  #ifdef DEBUG
+  Serial.println("  OLED Render Time: "+String(millis()-oledStart));
+  #endif
+
 
   //Serial.println("A:"+String(digitalRead(MENU_BUTTON_1))+" B:"+digitalRead(MENU_BUTTON_2)+" C:"+digitalRead(MENU_BUTTON_3)+" D:"+digitalRead(MENU_BUTTON_4));
   if (!buttonPressed) {
@@ -244,23 +212,11 @@ void loop() {
     }
   }
 
-  // 50millis delay with checking mic every millis
-  mic_max_diff = 0;
-
-  unsigned long start = millis();
-  int mic_min = 1000;
-  int mic_max = 0;
-  // Sub-tick loop, runs for 50 millis between each tick
-  while (start + 50 > millis()) {
-    // Manage mic input
-    int val = analogRead(MICROPHONE_PIN);
-    //Serial.println("val:"+String(val)+" min:100 max:300"); // Potentiometer WAS line parallel to the board averaging about 700 val
-    mic_max = max(val, mic_max);
-    mic_min = min(val, mic_min);
-  }
-  mic_max_diff = mic_max - mic_min;
-  //Serial.println("diff:"+String(mic_max_diff));
-
-  mic_avg_total += mic_max_diff;
-  mic_avg_time++;
+  #ifdef DEBUG
+  long tickEnd = millis();
+  Serial.print("Tick Time: ");
+  Serial.print(tickEnd - tickStart, 4);
+  Serial.print("ms | TPS: ");
+  Serial.println(1000.0 / (tickEnd - tickStart), 2);
+  #endif
 }
