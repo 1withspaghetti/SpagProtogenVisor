@@ -1,20 +1,5 @@
 #include "FaceMatrix.h"
 
-#define FACE_BRIGHTNESS_INITIAL 16 // Brightness can be changed from 1-10 times this number
-#define FACE_BRIGHTNESS_MULTIPLIER 4 // Brightness can be changed from 1-10 times this number
-
-// Face Constants
-#define FACE_WIDTH 16
-#define FACE_HEIGHT 8
-
-#define EYE_WIDTH 8
-#define EYE_HEIGHT 8
-
-// Vector Display Constants
-#define ESTIMATE_WIDTH 4
-#define ESTIMATE_HEIGHT 4
-
-
 FaceMatrix::FaceMatrix(uint8_t initialBrightness) {
     ledController = &FastLED.addLeds<NEOPIXEL, NEO_MATRIX_DATA_PIN>(leds, NEO_MATRIX_WIDTH * NEO_MATRIX_HEIGHT).setCorrection(TypicalLEDStrip);
     brightness = initialBrightness * FACE_BRIGHTNESS_MULTIPLIER + FACE_BRIGHTNESS_INITIAL;
