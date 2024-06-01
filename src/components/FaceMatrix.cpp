@@ -1,6 +1,7 @@
 #include "FaceMatrix.h"
 
-#define NEO_MATRIX_BRIGHTNESS_MULTIPLIER 4 // Brightness can be changed from 1-10 times this number
+#define FACE_BRIGHTNESS_INITIAL 16 // Brightness can be changed from 1-10 times this number
+#define FACE_BRIGHTNESS_MULTIPLIER 4 // Brightness can be changed from 1-10 times this number
 
 // Face Constants
 #define FACE_WIDTH 16
@@ -16,7 +17,7 @@
 
 FaceMatrix::FaceMatrix(uint8_t initialBrightness) {
     ledController = &FastLED.addLeds<NEOPIXEL, NEO_MATRIX_DATA_PIN>(leds, NEO_MATRIX_WIDTH * NEO_MATRIX_HEIGHT).setCorrection(TypicalLEDStrip);
-    brightness = initialBrightness * NEO_MATRIX_BRIGHTNESS_MULTIPLIER;
+    brightness = initialBrightness * FACE_BRIGHTNESS_MULTIPLIER + FACE_BRIGHTNESS_INITIAL;
 }
 
 FaceMatrix::~FaceMatrix() {
@@ -141,5 +142,5 @@ uint8_t FaceMatrix::getPixelCoverage(Point point, vector<Point>& vector) {
 }
 
 void FaceMatrix::setBrightness(uint8_t newBrightness) {
-    brightness = newBrightness * NEO_MATRIX_BRIGHTNESS_MULTIPLIER;
+    brightness = newBrightness * FACE_BRIGHTNESS_MULTIPLIER + FACE_BRIGHTNESS_INITIAL;
 }

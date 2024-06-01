@@ -9,6 +9,7 @@
 #define DEBUG
 // ############################
 
+#define TICKS_PER_SECOND 20
 
 // ############################
 // #      Pin Constants       #
@@ -32,30 +33,33 @@
 // Color cycle constants
 #define HUE_START 142
 #define HUE_END 167
-#define HUE_CHANGE 0.5
-
-// Mic constants
-#define MIC_TRIGGER 6 // The baseline difference to active talking
-#define MIC_TRIGGER_PERIOD 4
-#define MIC_AVERAGE_RESET 600
-
+#define HUE_CHANGE_PER_SECOND 6
 
 // ############################
 // #     Global Variables     #
 // ############################
+
+long microsLastLoop = 0;
 
 int menu = 0;
 bool buttonPressed = false;
 
 bool shouldPaintOLED = true;
 
-uint8_t brightness = 8;
+uint8_t brightness = 5;
 
-bool hue_up = true;
-float hue = HUE_START;
+const float hueRadius = (HUE_END - HUE_START) / 2;
+const float hueCenter = HUE_START + hueRadius;
 
-CRGB color = CHSV(hue * 255, 255, 255);
+CRGB color = CHSV(HUE_END, 255, 255);
 
+
+// ############################
+// #   Function Prototypes    #
+// ############################
+
+void render(float delta);
+void tick();
 
 // ############################
 // #     Object Creation      #
@@ -114,34 +118,50 @@ void setup() {
 
 void loop() {
   #ifdef DEBUG
-  long tickStart = millis();
+  unsigned long loopStart = millis();
   #endif
 
-  // Update face vectors
-  emotion.tick();
+  // Tick, only runs TICKS_PER_SECOND times per second but renders every loop
+  if (micros() - microsLastLoop > 1000000 / TICKS_PER_SECOND) {
+    microsLastLoop = micros();
 
-  // Face color
-  if (hue_up) {
-    hue += HUE_CHANGE;
-    if (hue >= HUE_END) {
-      hue = HUE_END;
-      hue_up = false;
-    }
-  } else {
-    hue -= HUE_CHANGE;
-    if (hue <= HUE_START) {
-      hue = HUE_START;
-      hue_up = true;
-    }
+    #ifdef DEBUG
+    unsigned long tickStart = millis();
+    #endif
+    tick();
+    #ifdef DEBUG
+    Serial.print("  Tick Time: ");
+    Serial.print(millis()-tickStart);
+    Serial.println("ms");
+    #endif
   }
-  color.setHue((uint8_t) hue);
+
+  // Delta is the percentage of the time through the current tick for this render frame
+  float delta = (micros() - microsLastLoop) / (1000.0 / TICKS_PER_SECOND);
+  render(delta);
 
 
-
-  // Display face matrix
   #ifdef DEBUG
-  long matrixStart = millis();
+  unsigned long loopEnd = millis();
+  Serial.print("Loop Time: ");
+  Serial.print(loopEnd - loopStart);
+  Serial.print("ms | FPS: ");
+  Serial.println(1000.0 / (loopEnd - loopStart), 2);
   #endif
+}
+
+
+// ############################
+// #         Render           #
+// ############################
+
+void render(float delta) {
+  
+  // Render face matrix
+  #ifdef DEBUG
+  unsigned long matrixStart = millis();
+  #endif
+  color.setHue((uint8_t) (sin(millis() / (1000.0 * 2 * PI) * HUE_CHANGE_PER_SECOND) * hueRadius + hueCenter));
   shouldPaintOLED = shouldPaintOLED || face_matrix.display(color, emotion.getEyeVector(), emotion.getMouthVector());
   #ifdef DEBUG
   Serial.print("  Matrix Render Time: ");
@@ -150,9 +170,9 @@ void loop() {
   #endif
 
 
-  // Update the OLED display
+  // Render OLED display
   #ifdef DEBUG
-  long oledStart = millis();
+  unsigned long oledStart = millis();
   #endif
   if (shouldPaintOLED) {
     display.render(menu, brightness, false, emotion.getEyeVector(), emotion.getMouthVector());
@@ -164,6 +184,17 @@ void loop() {
   Serial.println("ms");
   #endif
 
+}
+
+
+// ############################
+// #          Tick            #
+// ############################
+
+void tick() {
+
+  // Update face vectors
+  emotion.tick();
 
   //Serial.println("A:"+String(digitalRead(MENU_BUTTON_1))+" B:"+digitalRead(MENU_BUTTON_2)+" C:"+digitalRead(MENU_BUTTON_3)+" D:"+digitalRead(MENU_BUTTON_4));
   if (!buttonPressed) {
@@ -212,12 +243,4 @@ void loop() {
       buttonPressed = false;
     }
   }
-
-  #ifdef DEBUG
-  long tickEnd = millis();
-  Serial.print("Tick Time: ");
-  Serial.print(tickEnd - tickStart);
-  Serial.print("ms | TPS: ");
-  Serial.println(1000.0 / (tickEnd - tickStart), 2);
-  #endif
 }
