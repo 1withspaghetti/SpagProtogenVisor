@@ -31,6 +31,9 @@ Point Point::operator/(double d) {
 bool Point::operator==(Point p) {
     return x == p.x && y == p.y;
 }
+const bool Point::operator==(Point p) const {
+    return x == p.x && y == p.y;
+}
 bool Point::operator!=(Point p) {
     return x != p.x || y != p.y;
 }

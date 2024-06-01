@@ -51,5 +51,12 @@
         "streambuf": "cpp",
         "cinttypes": "cpp",
         "typeinfo": "cpp"
-    }
+    },
+    "cSpell.words": [
+        "CHSV",
+        "CRGB",
+        "leds",
+        "nscale",
+        "OLED"
+    ]
 }

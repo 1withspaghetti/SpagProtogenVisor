@@ -13,6 +13,7 @@ struct Point {
     Point operator*(double d);
     Point operator/(double d);
     bool operator==(Point p);
+    const bool operator==(Point p) const;
     bool operator!=(Point p);
     Point copy();
 };

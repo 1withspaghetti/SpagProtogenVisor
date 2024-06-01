@@ -14,79 +14,104 @@
 #define ESTIMATE_HEIGHT 4
 
 
-FaceMatrix::FaceMatrix(int initialBrightness) {
-    FastLED.addLeds<NEOPIXEL, NEO_MATRIX_DATA_PIN>(leds, NEO_MATRIX_WIDTH * NEO_MATRIX_HEIGHT).setCorrection(TypicalLEDStrip);
-    setBrightness(initialBrightness);
+FaceMatrix::FaceMatrix(uint8_t initialBrightness) {
+    ledController = &FastLED.addLeds<NEOPIXEL, NEO_MATRIX_DATA_PIN>(leds, NEO_MATRIX_WIDTH * NEO_MATRIX_HEIGHT).setCorrection(TypicalLEDStrip);
+    brightness = initialBrightness * NEO_MATRIX_BRIGHTNESS_MULTIPLIER;
 }
 
 FaceMatrix::~FaceMatrix() {
-    FastLED.clear();
-    FastLED.show();
+    ledController->clearLedData();
+    ledController = nullptr;
 }
 
 void FaceMatrix::setup() {
-    delay(1000);
-    setBrightness(brightness);
+    ledController->setDither(0);
+    ledController->showColor(CRGB::Black, 0);
 }
 
-void FaceMatrix::display(CRGB color, vector<Point>& eyeVector, vector<Point>& mouthVector) {
+bool FaceMatrix::display(CRGB color, vector<Point>& eyeVector, vector<Point>& mouthVector) {
+    if (coverageCacheEyeVector != eyeVector || coverageCacheMouthVector != mouthVector) {
+
+        Serial.println("FaceMatrix: Recalculating coverage vectors");
+
+        // Recalculate the coverage
+        render(color, eyeVector, mouthVector);
+        coverageCacheEyeVector = eyeVector;
+        coverageCacheMouthVector = mouthVector;
+
+        return true;
+
+    } else {
+        
+        // Use the cached version of the coverage vectors
+        ledController->clearLedData();
+        for (int i = 0; i < NEO_MATRIX_WIDTH * NEO_MATRIX_HEIGHT; i++) {
+            leds[i] = CRGB(color).nscale8(coverageCache[i]);
+        }
+        ledController->showLeds(brightness);
+
+        return false;
+    }
+}
+
+void FaceMatrix::render(CRGB color, vector<Point>& eyeVector, vector<Point>& mouthVector) {
 
     // Clear the matrix
-    FastLED.clear();
+    ledController->clearLedData();
 
     // Left eye
     for (double y = 0; y < EYE_HEIGHT; y++) {
         for (double x = 0; x < EYE_WIDTH; x++) {
+            uint16_t index = getPixelIndex(x, y);
             uint8_t cover = getPixelCoverage({x, y}, eyeVector);
-            if (cover > 0) {
-                setPixel(x, y, CRGB(color).nscale8(cover));
-            }
+            coverageCache[index] = cover;
+            if (cover > 0) leds[index] = CRGB(color).nscale8(cover);
         }
     }
 
     // Right eye
     for (double y = 0; y < EYE_HEIGHT; y++) {
         for (double x = 0; x < EYE_WIDTH; x++) {
+            uint16_t index = getPixelIndex(NEO_MATRIX_WIDTH - 1 - x, y);
             uint8_t cover = getPixelCoverage({x, y}, eyeVector);
-            if (cover > 0) {
-                setPixel(NEO_MATRIX_WIDTH - 1 - x, y, CRGB(color).nscale8(cover));
-            }
+            coverageCache[index] = cover;
+            if (cover > 0) leds[index] = CRGB(color).nscale8(cover);
         }
     }
 
     // Left Mouth
     for (double y = 4; y < FACE_HEIGHT; y++) { // There is a optimization here that assumes the mouth is always in the bottom half of the face
         for (double x = 0; x < FACE_WIDTH; x++) {
+            uint16_t index = getPixelIndex(x + EYE_WIDTH, y);
             uint8_t cover = getPixelCoverage({x, y}, mouthVector);
-            if (cover > 0) {
-                setPixel(x + EYE_WIDTH, y, CRGB(color).nscale8(cover));
-            }
+            coverageCache[index] = cover;
+            if (cover > 0) leds[index] = CRGB(color).nscale8(cover);
         }
     }
 
     // Right Mouth
     for (double y = 4; y < FACE_HEIGHT; y++) { // There is a optimization here that assumes the mouth is always in the bottom half of the face
         for (double x = 0; x < FACE_WIDTH; x++) {
+            uint16_t index = getPixelIndex(NEO_MATRIX_WIDTH - 1 - x - EYE_WIDTH, y);
             uint8_t cover = getPixelCoverage({x, y}, mouthVector);
-            if (cover > 0) {
-                setPixel(NEO_MATRIX_WIDTH - EYE_WIDTH - 1 - x, y, CRGB(color).nscale8(cover));
-            }
+            coverageCache[index] = cover;
+            if (cover > 0) leds[index] = CRGB(color).nscale8(cover);
         }
     }
 
-
-    FastLED.show();
+    ledController->showLeds(brightness);
 }
 
-void FaceMatrix::setPixel(uint8_t x, uint8_t y, CRGB color) {
-    // This function is used to set a pixel on the matrix
-    // It is used to set the pixel at the given x and y coordinates to the given color
-    // The x is flipped to account for x input being from the left side of the matrix
-    // It also accounts for the column zigzag pattern of the matrix
-    leds[
+/**
+ * It is used to get the led arr index at a given x and y coordinates
+ * The x is flipped to account for x input being from the left side of the matrix
+ * It also accounts for the column zigzag pattern of the matrix
+*/
+uint16_t FaceMatrix::getPixelIndex(uint8_t x, uint8_t y) {
+    return (
         NEO_MATRIX_HEIGHT * (NEO_MATRIX_WIDTH - 1 - x) +
         ((NEO_MATRIX_WIDTH - 1 - x) % 2 == 1 ? y : NEO_MATRIX_HEIGHT - 1 - y)
-    ] = color;
+    );
 }
 
 uint8_t FaceMatrix::getPixelCoverage(Point point, vector<Point>& vector) {
@@ -115,7 +140,6 @@ uint8_t FaceMatrix::getPixelCoverage(Point point, vector<Point>& vector) {
     return floor(hits*(255.0/(ESTIMATE_WIDTH*ESTIMATE_HEIGHT)));
 }
 
-void FaceMatrix::setBrightness(int newBrightness) {
-    brightness = newBrightness;
-    FastLED.setBrightness(brightness * NEO_MATRIX_BRIGHTNESS_MULTIPLIER);
+void FaceMatrix::setBrightness(uint8_t newBrightness) {
+    brightness = newBrightness * NEO_MATRIX_BRIGHTNESS_MULTIPLIER;
 }

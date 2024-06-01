@@ -47,7 +47,7 @@
 int menu = 0;
 bool buttonPressed = false;
 
-bool hasChange = true;
+bool shouldPaintOLED = true;
 
 uint8_t brightness = 8;
 
@@ -142,25 +142,26 @@ void loop() {
   #ifdef DEBUG
   long matrixStart = millis();
   #endif
-  face_matrix.display(color, emotion.getEyeVector(), emotion.getMouthVector());
+  shouldPaintOLED = shouldPaintOLED || face_matrix.display(color, emotion.getEyeVector(), emotion.getMouthVector());
   #ifdef DEBUG
-  Serial.println("  Matrix Render Time: "+String(millis()-matrixStart));
+  Serial.print("  Matrix Render Time: ");
+  Serial.print(millis()-matrixStart);
+  Serial.println("ms");
   #endif
 
-  // If needed, update OLED display
-  // if (hasChange) {
-  //   Serial.println("Updating Display");
-  //   display.render(menu, brightness, mic_active, emotion.getEyeVector(), emotion.getMouthVector());
-  //   hasChange = false;
-  // }
 
   // Update the OLED display
   #ifdef DEBUG
   long oledStart = millis();
   #endif
-  display.render(menu, brightness, false, emotion.getEyeVector(), emotion.getMouthVector());
+  if (shouldPaintOLED) {
+    display.render(menu, brightness, false, emotion.getEyeVector(), emotion.getMouthVector());
+    shouldPaintOLED = false;
+  }
   #ifdef DEBUG
-  Serial.println("  OLED Render Time: "+String(millis()-oledStart));
+  Serial.print("  OLED Render Time: ");
+  Serial.print(millis()-oledStart);
+  Serial.println("ms");
   #endif
 
 
@@ -201,7 +202,7 @@ void loop() {
         
         emotion.setEmotion(newEmotion);
       } else {
-        hasChange = true; // Only non-emotion changes need to be updated immediatly, emotions will update during blink
+        shouldPaintOLED = true; // Only non-emotion changes need to be updated immediatly, emotions will update during blink
       }
       brightness = constrain(brightness, 1, 10);
       face_matrix.setBrightness(brightness);
@@ -215,7 +216,7 @@ void loop() {
   #ifdef DEBUG
   long tickEnd = millis();
   Serial.print("Tick Time: ");
-  Serial.print(tickEnd - tickStart, 4);
+  Serial.print(tickEnd - tickStart);
   Serial.print("ms | TPS: ");
   Serial.println(1000.0 / (tickEnd - tickStart), 2);
   #endif

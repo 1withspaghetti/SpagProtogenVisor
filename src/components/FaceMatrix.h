@@ -10,14 +10,28 @@ using namespace std;
 
 class FaceMatrix {
     private:
+        CLEDController* ledController;
         CRGB leds[NEO_MATRIX_WIDTH * NEO_MATRIX_HEIGHT];
-        int brightness;
+        uint8_t coverageCache[NEO_MATRIX_WIDTH * NEO_MATRIX_HEIGHT];
+        vector<Point> coverageCacheEyeVector;
+        vector<Point> coverageCacheMouthVector;
+
+        uint8_t brightness;
         uint8_t getPixelCoverage(Point p, vector<Point>& vector);
-        void setPixel(uint8_t x, uint8_t y, CRGB color);
+        uint16_t getPixelIndex(uint8_t x, uint8_t y);
     public:
-        FaceMatrix(int initialBrightness = 10);
+        FaceMatrix(uint8_t initialBrightness = 10);
         ~FaceMatrix();
         void setup();
-        void display(CRGB color, vector<Point>& eyeVector, vector<Point>& mouthVector);
-        void setBrightness(int newBrightness);
+        /**
+         * Display the face on the matrix, will use a cached version of the coverage vector to speed up the process if possible
+         * 
+         * @return true if the coverage vector was recalculated, false if the cached version was used
+        */
+        bool display(CRGB color, vector<Point>& eyeVector, vector<Point>& mouthVector);
+        /**
+         * Render the face on the matrix, will not use a cached version of the coverage vector in stead it will calculate it every time
+        */
+        void render(CRGB color, vector<Point>& eyeVector, vector<Point>& mouthVector);
+        void setBrightness(uint8_t newBrightness);
 };
