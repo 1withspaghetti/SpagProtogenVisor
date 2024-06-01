@@ -143,9 +143,11 @@ const vector<Point>& FaceVectors::getEyeVector(int emotion) {
         case 3:
             return eye_4;
         case 4:
+            return eye_4;
+        case 5:
             return eye_5;
         default:
-            return eye_1;
+            return eye_2;
     }
 }
 
@@ -160,8 +162,10 @@ const vector<Point>& FaceVectors::getMouthVector(int emotion) {
         case 3:
             return mouth_1;
         case 4:
-            return mouth_2;
+            return mouth_3;
+        case 5:
+            return mouth_3;
         default:
-            return mouth_1;
+            return mouth_2;
     }
 }

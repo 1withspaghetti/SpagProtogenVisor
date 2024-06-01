@@ -27,34 +27,14 @@
 // ############################
 
 // Color cycle constants
-#define HUE_START 0.555
-#define HUE_END 0.700
-#define HUE_CHANGE 0.003
+#define HUE_START 142
+#define HUE_END 167
+#define HUE_CHANGE 0.5
 
 // Mic constants
 #define MIC_TRIGGER 6 // The baseline difference to active talking
 #define MIC_TRIGGER_PERIOD 4
 #define MIC_AVERAGE_RESET 600
-
-
-// ############################
-// #     Object Creation      #
-// ############################
-
-// Reset function at address 0
-void(* resetFunc) (void) = 0;
-
-// Neo matrix object for face
-FaceMatrix face_matrix = FaceMatrix(4);
-
-// Neo matrix object for headphones
-HeadphoneMatrix headphone_matrix = HeadphoneMatrix();
-
-// OLED Display object
-OLEDDisplay display = OLEDDisplay();
-
-// Emotion Manager object
-EmotionManager emotion = EmotionManager(0);
 
 
 // ############################
@@ -66,14 +46,14 @@ bool buttonPressed = false;
 
 bool hasChange = true;
 
-uint8_t brightness = 4;
+uint8_t brightness = 8;
 
 bool hue_up = true;
 float hue = HUE_START;
-float col[3] = {0,50,255};
-uint16_t color = Adafruit_NeoMatrix::Color(0,170,255);
+
+CRGB color = CHSV(hue * 255, 255, 255);
+CRGB error_color = CRGB(255,0,0);
 uint16_t headphone_color = Adafruit_NeoMatrix::Color(0,50,255);
-uint16_t error_color = Adafruit_NeoMatrix::Color(255,0,0);
 
 int mic_max_diff = 0;
 int mic_avg_time = 0;
@@ -86,11 +66,31 @@ float offset = 0.0;
 
 
 // ############################
+// #     Object Creation      #
+// ############################
+
+// Reset function at address 0
+void(* resetFunc) (void) = 0;
+
+// Neo matrix object for face
+FaceMatrix face_matrix = FaceMatrix(brightness);
+
+// Neo matrix object for headphones
+HeadphoneMatrix headphone_matrix = HeadphoneMatrix();
+
+// OLED Display object
+OLEDDisplay display = OLEDDisplay();
+
+// Emotion Manager object
+EmotionManager emotion = EmotionManager(0);
+
+
+// ############################
 // #          Setup           #
 // ############################
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
 
   pinMode(RF_DIGITAL_HIGH, OUTPUT);
   pinMode(RF_DIGITAL_LOW, OUTPUT);
@@ -154,9 +154,7 @@ void loop() {
 
 
   // Face color
-  hsv2rgb(hue, 1.0, 1.0, col);
-  color = Adafruit_NeoMatrix::Color(col[0]*255,col[1]*255,col[2]*255);
-  //Serial.println("R: "+String(col[0])+" G: "+String(col[1])+" B: "+String(col[2])+" Hue: "+String(hue));
+  color.setHue((uint8_t) hue);
 
   // Override for error emotion
   if (emotion.getEmotion() == 6) color = error_color;
@@ -203,7 +201,7 @@ void loop() {
     int newEmotion = -1;
     if (digitalRead(MENU_BUTTON_1) == 1) {
       buttonPressed = true;
-      if (menu == 0) newEmotion = (emotion.getEmotion() + 1) % 5;
+      if (menu == 0) newEmotion = (emotion.getEmotion() + 1) % 6;
       else if (menu == 1) newEmotion = 3;
       else if (menu == 2) newEmotion = 6;
       else if (menu == 3) brightness++;
@@ -231,8 +229,7 @@ void loop() {
     if (buttonPressed) {
       if (newEmotion > -1) {
         // Handle headphone matrix changing color when error emotion is entered/left
-        if (newEmotion == 6) headphone_matrix.display(error_color);
-        else if (emotion.getEmotion() == 6) headphone_matrix.display(headphone_color);
+        // TODO: Update this with fastled
         
         emotion.setEmotion(newEmotion);
       } else {
