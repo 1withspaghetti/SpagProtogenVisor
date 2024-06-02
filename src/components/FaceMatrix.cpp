@@ -2,7 +2,6 @@
 
 FaceMatrix::FaceMatrix(uint8_t initialBrightness) {
     ledController = &FastLED.addLeds<NEOPIXEL, NEO_MATRIX_DATA_PIN>(leds, NEO_MATRIX_WIDTH * NEO_MATRIX_HEIGHT).setCorrection(TypicalLEDStrip);
-    brightness = initialBrightness * FACE_BRIGHTNESS_MULTIPLIER + FACE_BRIGHTNESS_INITIAL;
 }
 
 FaceMatrix::~FaceMatrix() {
@@ -15,13 +14,13 @@ void FaceMatrix::setup() {
     ledController->showColor(CRGB::Black, 0);
 }
 
-bool FaceMatrix::display(CRGB color, vector<Point>& eyeVector, vector<Point>& mouthVector) {
+bool FaceMatrix::display(CRGB color, uint8_t brightness, vector<Point>& eyeVector, vector<Point>& mouthVector) {
     if (coverageCacheEyeVector != eyeVector || coverageCacheMouthVector != mouthVector) {
 
         Serial.println("FaceMatrix: Recalculating coverage vectors");
 
         // Recalculate the coverage
-        render(color, eyeVector, mouthVector);
+        render(color, brightness, eyeVector, mouthVector);
         coverageCacheEyeVector = eyeVector;
         coverageCacheMouthVector = mouthVector;
 
@@ -40,7 +39,7 @@ bool FaceMatrix::display(CRGB color, vector<Point>& eyeVector, vector<Point>& mo
     }
 }
 
-void FaceMatrix::render(CRGB color, vector<Point>& eyeVector, vector<Point>& mouthVector) {
+void FaceMatrix::render(CRGB color, uint8_t brightness, vector<Point>& eyeVector, vector<Point>& mouthVector) {
 
     // Clear the matrix
     ledController->clearLedData();
@@ -124,8 +123,4 @@ uint8_t FaceMatrix::getPixelCoverage(Point point, vector<Point>& vector) {
         }
     }
     return floor(hits*(255.0/(ESTIMATE_WIDTH*ESTIMATE_HEIGHT)));
-}
-
-void FaceMatrix::setBrightness(uint8_t newBrightness) {
-    brightness = newBrightness * FACE_BRIGHTNESS_MULTIPLIER + FACE_BRIGHTNESS_INITIAL;
 }

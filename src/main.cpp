@@ -22,6 +22,10 @@
 #define HUE_END 167
 #define HUE_CHANGE_PER_SECOND 6
 
+// Brightness Constants
+#define BRIGHTNESS_INITIAL 10 // Brightness can be changed from 1-10 times this number
+#define BRIGHTNESS_MULTIPLIER 12 // Brightness can be changed from 1-10 times this number
+
 // ############################
 // #     Global Variables     #
 // ############################
@@ -147,7 +151,8 @@ void render(float delta) {
   unsigned long matrixStart = millis();
   #endif
   color.setHue((uint8_t) (sin(millis() / (1000.0 * 2 * PI) * HUE_CHANGE_PER_SECOND) * hueRadius + hueCenter));
-  shouldPaintOLED = shouldPaintOLED || face_matrix.display(color, emotion.getEyeVector(), emotion.getMouthVector());
+  shouldPaintOLED = shouldPaintOLED || face_matrix.display(color, brightness * BRIGHTNESS_MULTIPLIER + BRIGHTNESS_INITIAL, emotion.getEyeVector(), emotion.getMouthVector());
+  headphone_matrix.display(color, brightness * BRIGHTNESS_MULTIPLIER + BRIGHTNESS_INITIAL);
   #ifdef DEBUG
   Serial.print("  Matrix Render Time: ");
   Serial.print(millis()-matrixStart);
@@ -207,6 +212,5 @@ void tick() {
     }
 
     brightness = constrain(brightness, 0, 10);
-    face_matrix.setBrightness(brightness);
   }
 }

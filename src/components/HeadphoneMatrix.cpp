@@ -7,31 +7,43 @@
 #define HEADPHONE_NEO_MATRIX_BRIGHTNESS 7
 
 HeadphoneMatrix::HeadphoneMatrix() {
-    matrix = new Adafruit_NeoMatrix(HEADPHONE_NEO_MATRIX_WIDTH, HEADPHONE_NEO_MATRIX_HEIGHT, HEADPHONE_NEO_MATRIX_DATA_PIN,
-        NEO_MATRIX_BOTTOM + NEO_MATRIX_RIGHT + NEO_MATRIX_COLUMNS + NEO_MATRIX_ZIGZAG,
-        NEO_GRB + NEO_KHZ800);
+    ledController = &FastLED.addLeds<NEOPIXEL, HEADPHONE_NEO_MATRIX_DATA_PIN>(leds, HEADPHONE_NEO_MATRIX_WIDTH * HEADPHONE_NEO_MATRIX_HEIGHT).setCorrection(TypicalLEDStrip);
 }
 
-HeadphoneMatrix::~HeadphoneMatrix()
-{
-    delete matrix;
+HeadphoneMatrix::~HeadphoneMatrix() {
+    ledController->clearLedData();
+    ledController = nullptr;
 }
 
 void HeadphoneMatrix::setup() {
-    matrix->begin();
-    matrix->setBrightness(HEADPHONE_NEO_MATRIX_BRIGHTNESS);
+    ledController->setDither(0);
+    ledController->showColor(CRGB::Black, 0);
 }
 
-void HeadphoneMatrix::display(uint16_t color) {
-    matrix->fillScreen(0);
+void HeadphoneMatrix::display(CRGB color, uint8_t brightness) {
+    ledController->clearLedData();
+
     for (int y = 0; y < HEADPHONE_HEIGHT; y++) {
         uint8_t row = pgm_read_byte(&(headphone_ico[y]));
         for (int x = 0; x < HEADPHONE_WIDTH; x++) {
             if (row >> (HEADPHONE_WIDTH-1 - x) & 0b1 == 1) {
-                matrix->drawPixel(x, y, color);
-                matrix->drawPixel(x + HEADPHONE_WIDTH, y, color);
+                leds[getPixelIndex(x, y)] = color;
+                leds[getPixelIndex(HEADPHONE_NEO_MATRIX_WIDTH - x - 1, y)] = color;
             }
         }
     }
-    matrix->show();
+
+    ledController->showLeds(brightness);
+}
+
+/**
+ * It is used to get the led arr index at a given x and y coordinates
+ * The x is flipped to account for x input being from the left side of the matrix
+ * It also accounts for the column zigzag pattern of the matrix
+*/
+uint16_t HeadphoneMatrix::getPixelIndex(uint8_t x, uint8_t y) {
+    return (
+        HEADPHONE_NEO_MATRIX_HEIGHT * (HEADPHONE_NEO_MATRIX_WIDTH - 1 - x) +
+        ((HEADPHONE_NEO_MATRIX_WIDTH - 1 - x) % 2 == 1 ? y : HEADPHONE_NEO_MATRIX_HEIGHT - 1 - y)
+    );
 }

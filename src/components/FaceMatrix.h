@@ -9,10 +9,6 @@ using namespace std;
 #define NEO_MATRIX_WIDTH 48
 #define NEO_MATRIX_HEIGHT 8
 
-// Brightness Constants
-#define FACE_BRIGHTNESS_INITIAL 10 // Brightness can be changed from 1-10 times this number
-#define FACE_BRIGHTNESS_MULTIPLIER 12 // Brightness can be changed from 1-10 times this number
-
 // Vector Display Constants
 #define ESTIMATE_WIDTH 4
 #define ESTIMATE_HEIGHT 4
@@ -26,7 +22,6 @@ class FaceMatrix {
         vector<Point> coverageCacheEyeVector;
         vector<Point> coverageCacheMouthVector;
 
-        uint8_t brightness;
         uint8_t getPixelCoverage(Point p, vector<Point>& vector);
         uint16_t getPixelIndex(uint8_t x, uint8_t y);
     public:
@@ -38,10 +33,9 @@ class FaceMatrix {
          * 
          * @return true if the coverage vector was recalculated, false if the cached version was used
         */
-        bool display(CRGB color, vector<Point>& eyeVector, vector<Point>& mouthVector);
+        bool display(CRGB color, uint8_t brightness, vector<Point>& eyeVector, vector<Point>& mouthVector);
         /**
          * Render the face on the matrix, will not use a cached version of the coverage vector in stead it will calculate it every time
         */
-        void render(CRGB color, vector<Point>& eyeVector, vector<Point>& mouthVector);
-        void setBrightness(uint8_t newBrightness);
+        void render(CRGB color, uint8_t brightness, vector<Point>& eyeVector, vector<Point>& mouthVector);
 };
