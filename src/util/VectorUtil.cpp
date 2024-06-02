@@ -76,7 +76,7 @@ void interpolateVector(vector<Point>& current, vector<Point>& target, double amo
     }
 }
 
-bool pointInPolygon(vector<Point>& vector, Point p) {
+bool pointInPolygon(const vector<Point>& vector, Point p) {
     bool inside = false;
     Point a = vector[0];
     for (int i = 1; i <= vector.size(); i++) {

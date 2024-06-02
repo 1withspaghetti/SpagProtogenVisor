@@ -23,7 +23,7 @@ void RFReceiver::setup() {
 */
 uint8_t RFReceiver::tick() {
     
-    //Serial.println("A:"+String(digitalRead(MENU_BUTTON_1))+" B:"+digitalRead(MENU_BUTTON_2)+" C:"+digitalRead(MENU_BUTTON_3)+" D:"+digitalRead(MENU_BUTTON_4));
+    //Serial.println("A:"+String(digitalRead(MENU_BUTTON_1))+" B:"+String(digitalRead(MENU_BUTTON_2))+" C:"+String(digitalRead(MENU_BUTTON_3))+" D:"+String(digitalRead(MENU_BUTTON_4)));
 
     bool state1 = digitalRead(MENU_BUTTON_1) == HIGH;
     bool state2 = digitalRead(MENU_BUTTON_2) == HIGH;
@@ -32,7 +32,7 @@ uint8_t RFReceiver::tick() {
 
     uint8_t newState4b = (state1 << 3) | (state2 << 2) | (state3 << 1) | state4;
 
-    uint8_t diff4b = lastState4b & ~newState4b;
+    uint8_t diff4b = newState4b & ~lastState4b;
 
     lastState4b = newState4b;
 

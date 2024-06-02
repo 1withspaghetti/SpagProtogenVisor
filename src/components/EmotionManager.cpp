@@ -3,22 +3,18 @@
 
 EmotionManager::EmotionManager(int initialEmotion) {
     emotion = initialEmotion;
-
-    vector<Point> initialEyeVector = FaceVectors::getEyeVector(emotion);
-    for (int i = 0; i < initialEyeVector.size(); i++) {
-        eyeVector.push_back(initialEyeVector[i]);
-    }
-
-    vector<Point> initialMouthVector = FaceVectors::getMouthVector(emotion);
-    for (int i = 0; i < initialMouthVector.size(); i++) {
-        mouthVector.push_back(initialMouthVector[i]);
-    }
 }
 
 EmotionManager::~EmotionManager()
 {
     eyeVector.clear();
     mouthVector.clear();
+}
+
+void EmotionManager::setup() {
+    // Expand from bottom right corner
+    eyeVector.push_back(Point(EYE_WIDTH, EYE_HEIGHT));
+    mouthVector.push_back(Point(FACE_WIDTH, FACE_HEIGHT));
 }
 
 void EmotionManager::tick() {

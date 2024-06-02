@@ -10,6 +10,7 @@ class EmotionManager {
     public:
         EmotionManager(int initialEmotion = 0);
         ~EmotionManager();
+        void setup();
         void tick();
         void setEmotion(int newEmotion);
         int getEmotion();

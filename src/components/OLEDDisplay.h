@@ -4,12 +4,14 @@
 #include <Wire.h>
 #include "definitions/Icons.h"
 #include "util/VectorUtil.h"
+#include "definitions/FaceVectors.h"
 
 
 class OLEDDisplay {
     private:
         Adafruit_SSD1306 *display;
         void drawProtoIcon(int rel_x, int rel_y, int emotionIcon);
+        uint8_t preRenderedIcons[EMOTION_TOTAL_COUNT][(int)ceil(ICON_BMP_WIDTH * ICON_BMP_HEIGHT / 8.0)]; // Each bit represents a pixel
     public:
         OLEDDisplay();
         ~OLEDDisplay();

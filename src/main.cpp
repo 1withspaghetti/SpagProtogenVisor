@@ -7,7 +7,7 @@
 #include "components/RFReceiver.h"
 
 // ############################
-#define DEBUG
+// #define DEBUG
 // ############################
 
 
@@ -79,6 +79,9 @@ void setup() {
   Serial.begin(115200);
 
   randomSeed(analogRead(0));
+
+  // Emotion Manager
+  emotion.setup();
 
   // NEO Matrixes
   face_matrix.setup();
@@ -182,23 +185,23 @@ void tick() {
   uint8_t buttonState = rf.tick();
   if (buttonState > 0) {
     if (menu == 0) {
-        if      (buttonState & 0b1000) emotion.setEmotion((emotion.getEmotion() + 1) % 6);
-        else if (buttonState & 0b0100) emotion.setEmotion(0);
-        else if (buttonState & 0b0010) emotion.setEmotion(0);
+        if      (buttonState & 0b1000) emotion.setEmotion(0);
+        else if (buttonState & 0b0100) emotion.setEmotion(1);
+        else if (buttonState & 0b0010) emotion.setEmotion(2);
         else if (buttonState & 0b0001) {menu = 1; shouldPaintOLED = true;}
     } else if (menu == 1) {
-        if      (buttonState & 0b1000) emotion.setEmotion(0);
-        else if (buttonState & 0b0100) emotion.setEmotion(0);
-        else if (buttonState & 0b0010) emotion.setEmotion(0);
+        if      (buttonState & 0b1000) emotion.setEmotion(3);
+        else if (buttonState & 0b0100) emotion.setEmotion(4);
+        else if (buttonState & 0b0010) emotion.setEmotion(5);
         else if (buttonState & 0b0001) {menu = 2; shouldPaintOLED = true;}
     } else if (menu == 2) {
-        if      (buttonState & 0b1000) emotion.setEmotion(0);
-        else if (buttonState & 0b0100) emotion.setEmotion(0);
+        if      (buttonState & 0b1000) emotion.setEmotion(6);
+        else if (buttonState & 0b0100) emotion.setEmotion(7);
         else if (buttonState & 0b0010) {menu = 3; shouldPaintOLED = true;}
-        else if (buttonState & 0b0001) {menu = 2; shouldPaintOLED = true;}
+        else if (buttonState & 0b0001) {menu = 0; shouldPaintOLED = true;}
     } else if (menu == 3) {
-        if      (buttonState & 0b1000) menu = brightness++;
-        else if (buttonState & 0b0100) menu = brightness--;
+        if      (buttonState & 0b1000) {brightness--; shouldPaintOLED = true;}
+        else if (buttonState & 0b0100) {brightness++; shouldPaintOLED = true;}
         else if (buttonState & 0b0010) resetFunc();
         else if (buttonState & 0b0001) {menu = 0; shouldPaintOLED = true;}
     }

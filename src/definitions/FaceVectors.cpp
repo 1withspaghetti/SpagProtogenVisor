@@ -108,16 +108,6 @@ const vector<Point> FaceVectors::mouth_3 = {
 //                            EMOTION DEFINITIONS
 // ==============================================================================
 
-#define EMOTION_HAPPY 0
-#define EMOTION_NEUTRAL 1
-#define EMOTION_SAD 2
-#define EMOTION_DETERMINED 3
-#define EMOTION_MAD 4
-#define EMOTION_EMBARRASSED 5
-
-
-#define EMOTION_TOTAL_COUNT 6
-
 const vector<Point>& FaceVectors::getEyeVector(int emotion) {
     switch (emotion) {
         case EMOTION_HAPPY:

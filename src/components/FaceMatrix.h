@@ -1,3 +1,4 @@
+#include "definitions/FaceVectors.h"
 #include "util/VectorUtil.h"
 #include <FastLED.h>
 
@@ -11,13 +12,6 @@ using namespace std;
 // Brightness Constants
 #define FACE_BRIGHTNESS_INITIAL 10 // Brightness can be changed from 1-10 times this number
 #define FACE_BRIGHTNESS_MULTIPLIER 12 // Brightness can be changed from 1-10 times this number
-
-// Face Constants
-#define FACE_WIDTH 16
-#define FACE_HEIGHT 8
-
-#define EYE_WIDTH 8
-#define EYE_HEIGHT 8
 
 // Vector Display Constants
 #define ESTIMATE_WIDTH 4
