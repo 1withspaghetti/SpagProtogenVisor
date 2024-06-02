@@ -1,45 +1,56 @@
 #include <Arduino.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_NeoMatrix.h>
-#include <Adafruit_SSD1306.h>
 
-#include <Faces.h>
-#include <Icons.h>
-#include "util/Util.h"
 #include "components/FaceMatrix.h"
 #include "components/HeadphoneMatrix.h"
 #include "components/OLEDDisplay.h"
+#include "components/EmotionManager.h"
+#include "components/RFReceiver.h"
+
+// ############################
+// #define DEBUG
+// ############################
 
 
 // ############################
-// #      Pin Constants       #
+// #        CONSTANTS         #
 // ############################
 
-// Microphone Constants
-#define MICROPHONE_PIN A6
-
-// Receiver Constants
-#define RF_DIGITAL_HIGH 5
-#define RF_DIGITAL_LOW 4
-#define MENU_BUTTON_1 9
-#define MENU_BUTTON_2 8
-#define MENU_BUTTON_3 7
-#define MENU_BUTTON_4 6
-
-// ############################
-// #     Other Constants      #
-// ############################
+#define TICKS_PER_SECOND 20
 
 // Color cycle constants
-#define HUE_START 0.555
-#define HUE_END 0.700
-#define HUE_CHANGE 0.003
+#define HUE_START 142
+#define HUE_END 167
+#define HUE_CHANGE_PER_SECOND 6
 
-// Mic constants
-#define MIC_TRIGGER 6 // The baseline difference to active talking
-#define MIC_TRIGGER_PERIOD 4
-#define MIC_AVERAGE_RESET 600
+// Brightness Constants
+#define BRIGHTNESS_INITIAL 10 // Brightness can be changed from 1-10 times this number
+#define BRIGHTNESS_MULTIPLIER 12 // Brightness can be changed from 1-10 times this number
 
+// ############################
+// #     Global Variables     #
+// ############################
+
+long microsLastLoop = 0;
+
+int menu = 0;
+bool buttonPressed = false;
+
+bool shouldPaintOLED = true;
+
+uint8_t brightness = 3;
+
+const float hueRadius = (HUE_END - HUE_START) / 2;
+const float hueCenter = HUE_START + hueRadius;
+
+CRGB color = CHSV(HUE_END, 255, 255);
+
+
+// ############################
+// #   Function Prototypes    #
+// ############################
+
+void render(float delta);
+void tick();
 
 // ############################
 // #     Object Creation      #
@@ -49,7 +60,7 @@
 void(* resetFunc) (void) = 0;
 
 // Neo matrix object for face
-FaceMatrix face_matrix = FaceMatrix(0, 4);
+FaceMatrix face_matrix = FaceMatrix(brightness);
 
 // Neo matrix object for headphones
 HeadphoneMatrix headphone_matrix = HeadphoneMatrix();
@@ -57,35 +68,11 @@ HeadphoneMatrix headphone_matrix = HeadphoneMatrix();
 // OLED Display object
 OLEDDisplay display = OLEDDisplay();
 
+// RF Receiver object
+RFReceiver rf = RFReceiver();
 
-// ############################
-// #     Global Variables     #
-// ############################
-
-int menu = 0;
-bool buttonPressed = false;
-
-bool hasChange = true;
-
-uint8_t brightness = 4;
-
-bool hue_up = true;
-float hue = HUE_START;
-float col[3] = {0,50,255};
-uint16_t color = Adafruit_NeoMatrix::Color(0,170,255);
-uint16_t headphone_color = Adafruit_NeoMatrix::Color(0,50,255);
-uint16_t error_color = Adafruit_NeoMatrix::Color(255,0,0);
-
-int emotion = 0;
-
-int mic_max_diff = 0;
-int mic_avg_time = 0;
-long mic_avg_total = 0;
-int mic_triggers = 0;
-bool mic_active = false;
-bool mic_was_active = false;
-
-float offset = 0.0;
+// Emotion Manager object
+EmotionManager emotion = EmotionManager(0);
 
 
 // ############################
@@ -93,30 +80,22 @@ float offset = 0.0;
 // ############################
 
 void setup() {
-  Serial.begin(9600);
-
-  pinMode(RF_DIGITAL_HIGH, OUTPUT);
-  pinMode(RF_DIGITAL_LOW, OUTPUT);
-
-  pinMode(MENU_BUTTON_1, INPUT);
-  pinMode(MENU_BUTTON_2, INPUT);
-  pinMode(MENU_BUTTON_3, INPUT);
-  pinMode(MENU_BUTTON_4, INPUT);
-
-  digitalWrite(RF_DIGITAL_HIGH, HIGH);
-  digitalWrite(RF_DIGITAL_LOW, LOW);
+  Serial.begin(115200);
 
   randomSeed(analogRead(0));
 
-  // NEO Matrix
-  face_matrix.setup();
-  face_matrix.display(color, offset);
+  // Emotion Manager
+  emotion.setup();
 
+  // NEO Matrixes
+  face_matrix.setup();
   headphone_matrix.setup();
-  headphone_matrix.display(headphone_color);
 
   // OLED Display
   display.setup();
+
+  // RF Receiver
+  rf.setup();
 
   Serial.println("Protogen started! ^w^");
 }
@@ -127,140 +106,111 @@ void setup() {
 // ############################
 
 void loop() {
-  // Handle Microphone
-  /*Serial.print("diff:");
-  Serial.print(mic_max_diff);
-  Serial.print(" avg:");
-  Serial.print((float)mic_avg_total / mic_avg_time);
-  Serial.print(" baseline:");
-  Serial.println((float)mic_avg_total / mic_avg_time + MIC_TRIGGER);*/
-  if (mic_max_diff >= (float)mic_avg_total / mic_avg_time + MIC_TRIGGER) {
-    mic_triggers++;
-  }
-  if (mic_avg_time % MIC_TRIGGER_PERIOD == 0) {
-    mic_active = mic_triggers >= (MIC_TRIGGER_PERIOD / 2);
-    mic_triggers = 0;
+  #ifdef DEBUG
+  unsigned long loopStart = millis();
+  #endif
 
-    if (mic_active != mic_was_active) hasChange = true;
-    mic_was_active = mic_active;
+  // Tick, only runs TICKS_PER_SECOND times per second but renders every loop
+  if (micros() - microsLastLoop > 1000000 / TICKS_PER_SECOND) {
+    microsLastLoop = micros();
 
-    //if (mic_active) Serial.println("Mic Active");
-    //else Serial.println("");
-  }
-  if (mic_avg_time >= MIC_AVERAGE_RESET) {
-    mic_avg_total = 0;
-    mic_avg_time = 0;
+    #ifdef DEBUG
+    unsigned long tickStart = millis();
+    #endif
+    tick();
+    #ifdef DEBUG
+    Serial.print("  Tick Time: ");
+    Serial.print(millis()-tickStart);
+    Serial.println("ms");
+    #endif
   }
 
+  // Delta is the percentage of the time through the current tick for this render frame
+  float delta = (micros() - microsLastLoop) / (1000.0 / TICKS_PER_SECOND);
+  render(delta);
 
-  // Face color
-  hsv2rgb(hue, 1.0, 1.0, col);
-  color = Adafruit_NeoMatrix::Color(col[0]*255,col[1]*255,col[2]*255);
-  //Serial.println("R: "+String(col[0])+" G: "+String(col[1])+" B: "+String(col[2])+" Hue: "+String(hue));
 
-  // Override for error emotion
-  if (emotion == 6) color = error_color;
+  #ifdef DEBUG
+  unsigned long loopEnd = millis();
+  Serial.print("Loop Time: ");
+  Serial.print(loopEnd - loopStart);
+  Serial.print("ms | FPS: ");
+  Serial.println(1000.0 / (loopEnd - loopStart), 2);
+  #endif
+}
 
-  // Audio Visualizer
-  if (emotion == 7) {
-    float new_offset = (mic_max_diff - mic_avg_total / mic_avg_time) / 5.0;
-    if (new_offset > offset) offset = new_offset; // If the new value is bigger, set it
-    else offset = (offset * 2 + new_offset) / 3; // else, slowly decrease to new value
-    offset = constrain(offset, 0, 4);
-  }
+
+// ############################
+// #         Render           #
+// ############################
+
+void render(float delta) {
   
-  face_matrix.tick();
-  face_matrix.display(color, offset);
+  // Render face matrix
+  #ifdef DEBUG
+  unsigned long matrixStart = millis();
+  #endif
+  color.setHue((uint8_t) (sin(millis() / (1000.0 * 2 * PI) * HUE_CHANGE_PER_SECOND) * hueRadius + hueCenter));
+  shouldPaintOLED = shouldPaintOLED || face_matrix.display(color, brightness * BRIGHTNESS_MULTIPLIER + BRIGHTNESS_INITIAL, emotion.getEyeVector(), emotion.getMouthVector());
+  headphone_matrix.display(color, brightness * BRIGHTNESS_MULTIPLIER + BRIGHTNESS_INITIAL);
+  #ifdef DEBUG
+  Serial.print("  Matrix Render Time: ");
+  Serial.print(millis()-matrixStart);
+  Serial.println("ms");
+  #endif
 
 
-  if (hasChange) {
-    display.render(emotion, face_matrix.getEyeFrame(), brightness, mic_active);
-    hasChange = false;
+  // Render OLED display
+  #ifdef DEBUG
+  unsigned long oledStart = millis();
+  #endif
+  if (shouldPaintOLED) {
+    display.render(menu, brightness, false, emotion.getEyeVector(), emotion.getMouthVector());
+    shouldPaintOLED = false;
   }
+  #ifdef DEBUG
+  Serial.print("  OLED Render Time: ");
+  Serial.print(millis()-oledStart);
+  Serial.println("ms");
+  #endif
+
+}
 
 
+// ############################
+// #          Tick            #
+// ############################
 
-  // Increment Vars
+void tick() {
 
-  // Face color
-  if (hue_up) {
-    hue += HUE_CHANGE;
-    if (hue >= HUE_END) {
-      hue = HUE_END;
-      hue_up = false;
+  // Update face vectors
+  emotion.tick();
+
+  // Check for button presses on the remote
+  uint8_t buttonState = rf.tick();
+  if (buttonState > 0) {
+    if (menu == 0) {
+        if      (buttonState & 0b1000) emotion.setEmotion(0);
+        else if (buttonState & 0b0100) emotion.setEmotion(1);
+        else if (buttonState & 0b0010) emotion.setEmotion(2);
+        else if (buttonState & 0b0001) {menu = 1; shouldPaintOLED = true;}
+    } else if (menu == 1) {
+        if      (buttonState & 0b1000) emotion.setEmotion(3);
+        else if (buttonState & 0b0100) emotion.setEmotion(4);
+        else if (buttonState & 0b0010) emotion.setEmotion(5);
+        else if (buttonState & 0b0001) {menu = 2; shouldPaintOLED = true;}
+    } else if (menu == 2) {
+        if      (buttonState & 0b1000) emotion.setEmotion(6);
+        else if (buttonState & 0b0100) emotion.setEmotion(7);
+        else if (buttonState & 0b0010) {menu = 3; shouldPaintOLED = true;}
+        else if (buttonState & 0b0001) {menu = 0; shouldPaintOLED = true;}
+    } else if (menu == 3) {
+        if      (buttonState & 0b1000) {brightness--; shouldPaintOLED = true;}
+        else if (buttonState & 0b0100) {brightness++; shouldPaintOLED = true;}
+        else if (buttonState & 0b0010) resetFunc();
+        else if (buttonState & 0b0001) {menu = 0; shouldPaintOLED = true;}
     }
-  } else {
-    hue -= HUE_CHANGE;
-    if (hue <= HUE_START) {
-      hue = HUE_START;
-      hue_up = true;
-    }
+
+    brightness = constrain(brightness, 0, 10);
   }
-
-  //Serial.println("A:"+String(digitalRead(MENU_BUTTON_1))+" B:"+digitalRead(MENU_BUTTON_2)+" C:"+digitalRead(MENU_BUTTON_3)+" D:"+digitalRead(MENU_BUTTON_4));
-  if (!buttonPressed) {
-    int newEmotion = -1;
-    if (digitalRead(MENU_BUTTON_1) == 1) {
-      buttonPressed = true;
-      if (menu == 0) newEmotion = 0;
-      else if (menu == 1) newEmotion = 3;
-      else if (menu == 2) newEmotion = 6;
-      else if (menu == 3) brightness++;
-    } else if (digitalRead(MENU_BUTTON_2) == 1) {
-      buttonPressed = true;
-      if (menu == 0) newEmotion = 1;
-      else if (menu == 1) newEmotion = 4;
-      else if (menu == 2) newEmotion = 7;
-      else if (menu == 3) brightness--;
-    } else if (digitalRead(MENU_BUTTON_3) == 1) {
-      buttonPressed = true;
-      if (menu == 0) newEmotion = 2;
-      else if (menu == 1) newEmotion = 5;
-      else if (menu == 2) menu = 3;
-      else if (menu == 3) resetFunc();
-    } else if (digitalRead(MENU_BUTTON_4) == 1) {
-      buttonPressed = true;
-      if (menu == 0) menu = 1;
-      else if (menu == 1) menu = 2;
-      else if (menu == 2) menu = 0;
-      else if (menu == 3) menu = 0;
-    } else {
-      buttonPressed = false;
-    }
-    if (buttonPressed) {
-      if (newEmotion > -1) {
-        if (newEmotion == 6) headphone_matrix.display(error_color);
-        else if (emotion == 6) headphone_matrix.display(headphone_color);
-        face_matrix.setEmotion(newEmotion);
-      } else {
-        hasChange = true; // Only non-emotion changes need to be updated immediatly, emotions will update during blink
-      }
-      brightness = constrain(brightness, 1, 10);
-      face_matrix.setBrightness(brightness);
-    }
-  } else {
-    if (digitalRead(MENU_BUTTON_1) + digitalRead(MENU_BUTTON_2) + digitalRead(MENU_BUTTON_3) + digitalRead(MENU_BUTTON_4) == 0) {
-      buttonPressed = false;
-    }
-  }
-
-  // 50millis delay with checking mic every millis
-  mic_max_diff = 0;
-
-  unsigned long start = millis();
-  int mic_min = 1000;
-  int mic_max = 0;
-  // Sub-tick loop, runs for 50 millis between each tick
-  while (start + 50 > millis()) {
-    // Manage mic input
-    int val = analogRead(MICROPHONE_PIN);
-    //Serial.println("val:"+String(val)+" min:100 max:300"); // Potentiometer WAS line parallel to the board averaging about 700 val
-    mic_max = max(val, mic_max);
-    mic_min = min(val, mic_min);
-  }
-  mic_max_diff = mic_max - mic_min;
-  //Serial.println("diff:"+String(mic_max_diff));
-
-  mic_avg_total += mic_max_diff;
-  mic_avg_time++;
 }

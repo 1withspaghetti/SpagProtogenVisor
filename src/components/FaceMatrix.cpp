@@ -1,123 +1,126 @@
 #include "FaceMatrix.h"
 
-// Neo Matrix Constants
-#define NEO_MATRIX_DATA_PIN 3
-#define NEO_MATRIX_WIDTH 48
-#define NEO_MATRIX_HEIGHT 8
-
-#define NEO_MATRIX_BRIGHTNESS_MULTIPLIER 3 // Brightness can be changed from 1-10 times this number
-
-
-FaceMatrix::FaceMatrix(int initialEmotion, int initialBrightness) {
-    matrix = new Adafruit_NeoMatrix(NEO_MATRIX_WIDTH, NEO_MATRIX_HEIGHT, NEO_MATRIX_DATA_PIN,
-        NEO_MATRIX_BOTTOM + NEO_MATRIX_RIGHT + NEO_MATRIX_COLUMNS + NEO_MATRIX_ZIGZAG,
-        NEO_GRB + NEO_KHZ800);
-
-    emotion = initialEmotion;
-    toEmotion = -1;
-    brightness = initialBrightness;
-    talking = false;
-    blinkTimer = 100;
+FaceMatrix::FaceMatrix(uint8_t initialBrightness) {
+    ledController = &FastLED.addLeds<NEOPIXEL, NEO_MATRIX_DATA_PIN>(leds, NEO_MATRIX_WIDTH * NEO_MATRIX_HEIGHT).setCorrection(TypicalLEDStrip);
 }
 
-FaceMatrix::~FaceMatrix()
-{
-    delete matrix;
+FaceMatrix::~FaceMatrix() {
+    ledController->clearLedData();
+    ledController = nullptr;
 }
 
 void FaceMatrix::setup() {
-    matrix->begin();
-    matrix->setTextWrap(false);
-    matrix->setBrightness(brightness * NEO_MATRIX_BRIGHTNESS_MULTIPLIER);
+    ledController->setDither(0);
+    ledController->showColor(CRGB::Black, 0);
 }
 
-void FaceMatrix::tick() {
-    // Blinks
-    int eye_frame = EYE_FRAMES-1-min(abs(blinkTimer), EYE_FRAMES-1);
-    if (eye_frame == 2 && toEmotion != -1) {
-        emotion = toEmotion;
-        toEmotion = -1;
-    }
-    //if (abs(blinkTimer) == EYE_FRAMES-1 || blinkTimer == 0) hasChange = true;
-    
-    blinkTimer--;
-    if (blinkTimer <= -EYE_FRAMES) blinkTimer = random(100,150);
-}
+bool FaceMatrix::display(CRGB color, uint8_t brightness, vector<Point>& eyeVector, vector<Point>& mouthVector) {
+    if (coverageCacheEyeVector != eyeVector || coverageCacheMouthVector != mouthVector) {
 
-void FaceMatrix::display(uint16_t color, float equalizerOffset) {
+        Serial.println("FaceMatrix: Recalculating coverage vectors");
 
-    matrix->fillScreen(0);
+        // Recalculate the coverage
+        render(color, brightness, eyeVector, mouthVector);
+        coverageCacheEyeVector = eyeVector;
+        coverageCacheMouthVector = mouthVector;
 
-    // Audio Visualizer
-    if (emotion == 7) {
-        for (int i = 0; i < FACE_WIDTH; i++) {
-            uint8_t newVal = visualizerBars[i] + (random(3)-1);
-            visualizerBars[i] = constrain(newVal, 1, 4);
-            for (int y = 0; y < FACE_HEIGHT; y++) {
-                if (y >= FACE_HEIGHT - visualizerBars[i] - equalizerOffset) matrix->fillRect(EYE_WIDTH + i*2, y, 2, 1, visualizerColors[y]);
-            }
-        }
-    }
-    else if (emotion == 5) {} // No face on blush
-    else {
-        // Face
-        for (int y = 0; y < FACE_HEIGHT; y++) {
-            uint16_t row = pgm_read_word(&((!talking ? face : face_talking)[getMouthIndex(emotion)][y]));
-            for (int x = 0; x < FACE_WIDTH; x++) {
-                if (row >> (FACE_WIDTH-1 - x) & 0b1 == 1) {
-                    matrix->drawPixel(EYE_WIDTH + x, y, color);
-                    matrix->drawPixel((EYE_WIDTH + (FACE_WIDTH * 2)) - 1 - x, y, color);
-                }
-            }
-        }
-    }
-    // If blush should be applied
-    if (emotion == 5) {
-        for (int y = 0; y < FACE_HEIGHT; y++) {
-            uint16_t row = pgm_read_word(&(face_blush[y]));
-            for (int x = 0; x < FACE_WIDTH; x++) {
-                if (row >> (FACE_WIDTH-1 - x) & 0b1 == 1) {
-                    matrix->drawPixel(EYE_WIDTH + x, y, blush_color);
-                    matrix->drawPixel((EYE_WIDTH + (FACE_WIDTH * 2)) - 1 - x, y, blush_color);
-                }
-            }
-        }
-    }
+        return true;
 
-    // Eyes
-    int eye_frame = EYE_FRAMES-1-min(abs(blinkTimer), EYE_FRAMES-1);
-
-    for (int y = 0; y < EYE_HEIGHT; y++) {
-        uint8_t row = pgm_read_byte(&(eye[getEyeIndex(emotion)][eye_frame][y]));
-        for (int x = 0; x < EYE_WIDTH; x++) {
-            if (row >> (EYE_WIDTH-1 - x) & 0b1 == 1) {
-                matrix->drawPixel(x, y, color);
-                matrix->drawPixel(NEO_MATRIX_WIDTH-1-x, y, color);
-            }
-        }
-    }
-
-    matrix->show();
-}
-
-void FaceMatrix::setEmotion(int newEmotion, bool force) {
-    if (force) {
-        emotion = newEmotion;
     } else {
-        toEmotion = newEmotion;
-        blinkTimer = EYE_FRAMES-1;
+        
+        // Use the cached version of the coverage vectors
+        ledController->clearLedData();
+        for (int i = 0; i < NEO_MATRIX_WIDTH * NEO_MATRIX_HEIGHT; i++) {
+            leds[i] = CRGB(color).nscale8(coverageCache[i]);
+        }
+        ledController->showLeds(brightness);
+
+        return false;
     }
 }
 
-void FaceMatrix::setBrightness(int newBrightness) {
-    brightness = newBrightness;
-    matrix->setBrightness(brightness * NEO_MATRIX_BRIGHTNESS_MULTIPLIER);
+void FaceMatrix::render(CRGB color, uint8_t brightness, vector<Point>& eyeVector, vector<Point>& mouthVector) {
+
+    // Clear the matrix
+    ledController->clearLedData();
+
+    // Left eye
+    for (double y = 0; y < EYE_HEIGHT; y++) {
+        for (double x = 0; x < EYE_WIDTH; x++) {
+            uint16_t index = getPixelIndex(x, y);
+            uint8_t cover = getPixelCoverage({x, y}, eyeVector);
+            coverageCache[index] = cover;
+            if (cover > 0) leds[index] = CRGB(color).nscale8(cover);
+        }
+    }
+
+    // Right eye
+    for (double y = 0; y < EYE_HEIGHT; y++) {
+        for (double x = 0; x < EYE_WIDTH; x++) {
+            uint16_t index = getPixelIndex(NEO_MATRIX_WIDTH - 1 - x, y);
+            uint8_t cover = getPixelCoverage({x, y}, eyeVector);
+            coverageCache[index] = cover;
+            if (cover > 0) leds[index] = CRGB(color).nscale8(cover);
+        }
+    }
+
+    // Left Mouth
+    for (double y = 4; y < FACE_HEIGHT; y++) { // There is a optimization here that assumes the mouth is always in the bottom half of the face
+        for (double x = 0; x < FACE_WIDTH; x++) {
+            uint16_t index = getPixelIndex(x + EYE_WIDTH, y);
+            uint8_t cover = getPixelCoverage({x, y}, mouthVector);
+            coverageCache[index] = cover;
+            if (cover > 0) leds[index] = CRGB(color).nscale8(cover);
+        }
+    }
+
+    // Right Mouth
+    for (double y = 4; y < FACE_HEIGHT; y++) { // There is a optimization here that assumes the mouth is always in the bottom half of the face
+        for (double x = 0; x < FACE_WIDTH; x++) {
+            uint16_t index = getPixelIndex(NEO_MATRIX_WIDTH - 1 - x - EYE_WIDTH, y);
+            uint8_t cover = getPixelCoverage({x, y}, mouthVector);
+            coverageCache[index] = cover;
+            if (cover > 0) leds[index] = CRGB(color).nscale8(cover);
+        }
+    }
+
+    ledController->showLeds(brightness);
 }
 
-void FaceMatrix::setTalking(bool newTalking) {
-    talking = newTalking;
+/**
+ * It is used to get the led arr index at a given x and y coordinates
+ * The x is flipped to account for x input being from the left side of the matrix
+ * It also accounts for the column zigzag pattern of the matrix
+*/
+uint16_t FaceMatrix::getPixelIndex(uint8_t x, uint8_t y) {
+    return (
+        NEO_MATRIX_HEIGHT * (NEO_MATRIX_WIDTH - 1 - x) +
+        ((NEO_MATRIX_WIDTH - 1 - x) % 2 == 1 ? y : NEO_MATRIX_HEIGHT - 1 - y)
+    );
 }
 
-int FaceMatrix::getEyeFrame() {
-    return EYE_FRAMES-1-min(abs(blinkTimer), EYE_FRAMES-1);
+uint8_t FaceMatrix::getPixelCoverage(Point point, vector<Point>& vector) {
+    uint8_t hits = 0;
+
+    // For optimization, check corners of the pixel first
+    if (pointInPolygon(vector, {point.x+0.0, point.y+0.0})) hits++;
+    if (pointInPolygon(vector, {point.x+1.0, point.y+0.0})) hits++;
+    if (pointInPolygon(vector, {point.x+0.0, point.y+1.0})) hits++;
+    if (pointInPolygon(vector, {point.x+1.0, point.y+1.0})) hits++;
+
+    if (hits == 0) return 0;
+    else if (hits == 4) return 255;
+
+    // Check the rest of the pixel for more accurate brightness
+    hits = 0;
+
+    Point p = {0.0, 0.0};
+    for (p.y = point.y+0.0; p.y < point.y+1; p.y += (1.0/ESTIMATE_HEIGHT)) {
+        for (p.x = point.x+0.0; p.x < point.x+1; p.x += (1.0/ESTIMATE_WIDTH)) {
+            if (pointInPolygon(vector, p)) {
+                hits++;
+            }
+        }
+    }
+    return floor(hits*(255.0/(ESTIMATE_WIDTH*ESTIMATE_HEIGHT)));
 }
