@@ -1,6 +1,48 @@
 #include "VectorUtil.h"
 
-void interpolateVector(vector<Point>& current, vector<Point>& target, double amount) {
+/**
+ * Transforms a vector of points by scaling all points away from the src point by the magnitude
+ * 
+ * @param original The original vector of points, left unchanged
+ * @param result The vector to store the result in, will be resized and overwritten to match the original vector
+ * @param srcX The x coordinate of the source point
+ * @param srcY The y coordinate of the source point
+ * @param magnitude The magnitude to scale the points by, 1 is no change, 0 is all points at the src point, >1 the points are scaled away from the src point
+ */
+void transformVector(vector<Point>& original, vector<Point>& result, double srcX, double srcY, double magnitude) {
+    // Match the size of the result vector to the original vector
+    if (original.size() > result.size()) {
+        for (int i = 0; i < original.size() - result.size(); i++) {
+            result.push_back(Point(0, 0));
+        }
+    } else if (original.size() < result.size()) {
+        for (int i = 0; i < result.size() - original.size(); i++) {
+            result.pop_back();
+        }
+    }
+    
+    // Scale all the points away/to the src point based on the magnitude
+    for (int i = 0; i < original.size(); i++) {
+        Point p = original[i];
+        double x = p.x - srcX;
+        double y = p.y - srcY;
+        double angle = atan2(y, x);
+        double distance = sqrt(x * x + y * y);
+        result[i].x = srcX + cos(angle) * (distance * magnitude);
+        result[i].y = srcY + sin(angle) * (distance * magnitude);
+    }
+}
+
+/**
+ * Interpolates between two vectors of points, modifying the current vector to move towards the target vector.
+ * The current vector will be resized to match the target vector if it is smaller, and points will be inserted or deleted in between if needed.
+ * Each point in the current vector will be moved towards the corresponding point in the target vector by the amount a * distance + b.
+ * @param current The vector of points to modify
+ * @param target The vector of points to move towards
+ * @param a The amount to move towards the target point, 0 is no movement, 1 is moving the full distance
+ * @param b The amount to move towards the target point, added to the distance * a
+ */
+void interpolateVector(vector<Point>& current, vector<Point>& target, double a, double b) {
 
     if (current.size() < target.size()) {
         
@@ -72,10 +114,12 @@ void interpolateVector(vector<Point>& current, vector<Point>& target, double amo
 
     // Interpolate the points
     for (int i = 0; i < current.size(); i++) {
-        current[i].moveTowards(target[i], amount);
+        current[i].moveTowards(target[i], a, b);
     }
 }
-
+ /**
+  * Checks if a point is inside a polygon defined by a vector of points
+  */
 bool pointInPolygon(const vector<Point>& vector, Point p) {
     bool inside = false;
     Point a = vector[0];

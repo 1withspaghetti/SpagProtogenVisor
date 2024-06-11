@@ -19,10 +19,10 @@ void EmotionManager::setup() {
 
 void EmotionManager::tick() {
     vector<Point> targetEyeVector = FaceVectors::getEyeVector(emotion);
-    interpolateVector(eyeVector, targetEyeVector, 2);
+    interpolateVector(eyeVector, targetEyeVector, 0.25, 0.25);
 
     vector<Point> targetMouthVector = FaceVectors::getMouthVector(emotion);
-    interpolateVector(mouthVector, targetMouthVector, 2);
+    interpolateVector(mouthVector, targetMouthVector, 0.25, 0.25);
 }
 
 void EmotionManager::setEmotion(int newEmotion) {
