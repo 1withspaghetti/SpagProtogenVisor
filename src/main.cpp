@@ -5,6 +5,7 @@
 #include "components/OLEDDisplay.h"
 #include "components/EmotionManager.h"
 #include "components/RFReceiver.h"
+#include "components/Microphone.h"
 
 // ############################
 // #define DEBUG
@@ -74,6 +75,9 @@ RFReceiver rf = RFReceiver();
 // Emotion Manager object
 EmotionManager emotion = EmotionManager(0);
 
+// Microphone object
+Microphone mic = Microphone();
+
 
 // ############################
 // #          Setup           #
@@ -96,6 +100,23 @@ void setup() {
 
   // RF Receiver
   rf.setup();
+
+  // Microphone
+  mic.setup();
+  xTaskCreatePinnedToCore(
+    [] (void* pvParameters) {
+      for (;;) {
+        mic.tick();
+        vTaskDelay(50);
+      }
+    },
+    "Microphone",
+    10000,
+    NULL,
+    1,
+    NULL,
+    0
+  );
 
   Serial.println("Protogen started! ^w^");
 }
@@ -184,7 +205,12 @@ void render(float delta) {
 void tick() {
 
   // Update face vectors
-  emotion.tick();
+  double mic_magnitude = mic.getMagnitude();
+  #ifdef DEBUG
+  Serial.print("Mic Magnitude: ");
+  Serial.println(mic_magnitude);
+  #endif
+  emotion.tick(mic_magnitude);
 
   // Check for button presses on the remote
   uint8_t buttonState = rf.tick();

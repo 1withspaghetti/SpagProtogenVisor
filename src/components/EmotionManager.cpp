@@ -17,12 +17,20 @@ void EmotionManager::setup() {
     mouthVector.push_back(Point(FACE_WIDTH, FACE_HEIGHT));
 }
 
-void EmotionManager::tick() {
-    vector<Point> targetEyeVector = FaceVectors::getEyeVector(emotion);
-    interpolateVector(eyeVector, targetEyeVector, 2);
+void EmotionManager::tick(double mic_magnitude) {
+    if (mic_magnitude < MIC_MAGNITUDE_THRESHOLD) mic_magnitude = 0;
+    if (mic_magnitude > MIC_MAGNITUDE_MAX) mic_magnitude = MIC_MAGNITUDE_MAX;
 
-    vector<Point> targetMouthVector = FaceVectors::getMouthVector(emotion);
-    interpolateVector(mouthVector, targetMouthVector, 2);
+    const vector<Point> targetEyeVector = FaceVectors::getEyeVector(emotion);
+    interpolateVector(eyeVector, targetEyeVector, 0.25, 0.25);
+
+
+    const vector<Point> targetMouthVector = FaceVectors::getMouthVector(emotion);
+
+    std::vector<Point> temp(targetMouthVector.size(), Point(0, 0));
+    transformVector(targetMouthVector, temp, MOUTH_TRANSFORM_SRC_X, MOUTH_TRANSFORM_SRC_Y, 1 + mic_magnitude);
+
+    interpolateVector(mouthVector, temp, 0.25, 0.25);
 }
 
 void EmotionManager::setEmotion(int newEmotion) {
