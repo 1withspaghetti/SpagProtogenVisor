@@ -2,6 +2,8 @@
 
 Point::Point() : x(0), y(0) {}
 Point::Point(double x, double y) : x(x), y(y) {}
+Point::Point(const Point& p) : x(p.x), y(p.y) {}
+Point::~Point() {}
 double Point::distance(Point p) {
     return sqrt(pow(x - p.x, 2) + pow(y - p.y, 2));
 }
@@ -41,6 +43,6 @@ const bool Point::operator==(Point p) const {
 const bool Point::operator!=(Point p) const {
     return x != p.x || y != p.y;
 }
-Point Point::copy() {
+const Point Point::copy() const {
     return Point(x, y);
 }

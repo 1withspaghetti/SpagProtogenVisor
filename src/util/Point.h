@@ -15,6 +15,14 @@ struct Point {
      */
     Point(double x, double y);
     /**
+     * Copy constructor for a point, sets the x and y values to the given point
+     */
+    Point(const Point& p);
+    /**
+     * Destructor for a point
+     */
+    ~Point();
+    /**
      * Calculates the distance between this point and another point
      * @param p The point to calculate the distance to
      * @return The distance between the two points
@@ -66,7 +74,7 @@ struct Point {
     /**
      * Creates a copy of this point with the same x and y values
      */
-    Point copy();
+    const Point copy() const;
 };
 
 #endif

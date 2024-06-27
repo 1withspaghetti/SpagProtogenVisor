@@ -1,6 +1,10 @@
 #include "Microphone.h"
 
 Microphone::Microphone() {
+    sample = 0;
+    sumForAverage = 0;
+    countForAverage = 0;
+    magnitude = 0;
 }
 
 Microphone::~Microphone() {

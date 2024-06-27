@@ -205,7 +205,12 @@ void render(float delta) {
 void tick() {
 
   // Update face vectors
-  emotion.tick();
+  double mic_magnitude = mic.getMagnitude();
+  #ifdef DEBUG
+  Serial.print("Mic Magnitude: ");
+  Serial.println(mic_magnitude);
+  #endif
+  emotion.tick(mic_magnitude);
 
   // Check for button presses on the remote
   uint8_t buttonState = rf.tick();

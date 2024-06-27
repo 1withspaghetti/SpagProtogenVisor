@@ -9,7 +9,7 @@
  * @param srcY The y coordinate of the source point
  * @param magnitude The magnitude to scale the points by, 1 is no change, 0 is all points at the src point, >1 the points are scaled away from the src point
  */
-void transformVector(vector<Point>& original, vector<Point>& result, double srcX, double srcY, double magnitude) {
+void transformVector(const vector<Point>& original, vector<Point>& result, double srcX, double srcY, double magnitude) {
     // Match the size of the result vector to the original vector
     if (original.size() > result.size()) {
         for (int i = 0; i < original.size() - result.size(); i++) {
@@ -42,7 +42,7 @@ void transformVector(vector<Point>& original, vector<Point>& result, double srcX
  * @param a The amount to move towards the target point, 0 is no movement, 1 is moving the full distance
  * @param b The amount to move towards the target point, added to the distance * a
  */
-void interpolateVector(vector<Point>& current, vector<Point>& target, double a, double b) {
+void interpolateVector(vector<Point>& current, const vector<Point>& target, double a, double b) {
 
     if (current.size() < target.size()) {
         
@@ -123,8 +123,9 @@ void interpolateVector(vector<Point>& current, vector<Point>& target, double a, 
 bool pointInPolygon(const vector<Point>& vector, Point p) {
     bool inside = false;
     Point a = vector[0];
+    Point b;
     for (int i = 1; i <= vector.size(); i++) {
-        Point b = vector[i % vector.size()];
+        b = vector[i % vector.size()];
 
         if (p.y > min(a.y, b.y) && p.y <= max(a.y, b.y) && p.x <= max(a.x, b.x) && a.y != b.y) {
             double xIntersection = (p.y - a.y) * (b.x - a.x) / (b.y - a.y) + a.x;
