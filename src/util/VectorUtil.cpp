@@ -10,6 +10,20 @@
  * @param magnitude The magnitude to scale the points by, 1 is no change, 0 is all points at the src point, >1 the points are scaled away from the src point
  */
 void transformVector(const vector<Point>& original, vector<Point>& result, double srcX, double srcY, double magnitude) {
+    transformVector(original, result, srcX, srcY, magnitude, magnitude);
+}
+
+/**
+ * Transforms a vector of points by scaling all points away from the src point by the magnitude
+ * For the magnitude, 1 is no change, 0 is all points at the src point, >1 the points are scaled away from the src point
+ * @param original The original vector of points, left unchanged
+ * @param result The vector to store the result in, will be resized and overwritten to match the original vector
+ * @param srcX The x coordinate of the source point
+ * @param srcY The y coordinate of the source point
+ * @param magX Magnitude to scale the x coordinate by
+ * @param magY Magnitude to scale the y coordinate by
+ */
+void transformVector(const vector<Point>& original, vector<Point>& result, double srcX, double srcY, double magX, double magY) {
     // Match the size of the result vector to the original vector
     if (original.size() > result.size()) {
         for (int i = 0; i < original.size() - result.size(); i++) {
@@ -28,8 +42,8 @@ void transformVector(const vector<Point>& original, vector<Point>& result, doubl
         double y = p.y - srcY;
         double angle = atan2(y, x);
         double distance = sqrt(x * x + y * y);
-        result[i].x = srcX + cos(angle) * (distance * magnitude);
-        result[i].y = srcY + sin(angle) * (distance * magnitude);
+        result[i].x = srcX + cos(angle) * (distance * magX);
+        result[i].y = srcY + sin(angle) * (distance * magY);
     }
 }
 
