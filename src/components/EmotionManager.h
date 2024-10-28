@@ -7,7 +7,7 @@ using namespace std;
 // Min time between blinks in ticks
 #define BLINK_INTERVAL_MIN 120 // 6 seconds
 // Duration of blink in ticks
-#define BLINK_DURATION 20 // 1 second
+#define BLINK_DURATION 5 // 0.25 seconds
 
 // Source point for transforming the eye for blinking
 #define EYE_TRANSFORM_SRC_X 3

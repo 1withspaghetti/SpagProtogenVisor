@@ -25,6 +25,20 @@ Point& Point::moveTowards(Point p, double a, double b) {
     double amountToMove = distance * a + b;
     return this->moveTowards(p, amountToMove);
 }
+Point& Point::scaleBy(double srcX, double srcY, double magX, double magY) {
+    double x = this->x - srcX;
+    double y = this->y - srcY;
+    double angle = atan2(y, x);
+    double distance = sqrt(x * x + y * y);
+    this->x = srcX + cos(angle) * (distance * magX);
+    this->y = srcY + sin(angle) * (distance * magY);
+    return *this;
+}
+Point& Point::translate(double dx, double dy) {
+    x += dx;
+    y += dy;
+    return *this;
+}
 Point Point::operator+(Point p) {
     return Point(x + p.x, y + p.y);
 }

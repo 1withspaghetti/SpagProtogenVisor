@@ -44,6 +44,14 @@ struct Point {
      */
     Point& moveTowards(Point p, double a, double b);
     /**
+     * Scales the distance between this point and another point by a set magnitude
+     */
+    Point& scaleBy(double srcX, double srcY, double magX, double magY);
+    /**
+     * Translates this point by a set amount in the x and y directions
+     */
+    Point& translate(double dx, double dy);
+    /**
      * Adds two points together, returning a new point with the sum of the x and y values
      */
     Point operator+(Point p);

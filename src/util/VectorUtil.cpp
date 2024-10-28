@@ -3,47 +3,28 @@
 /**
  * Transforms a vector of points by scaling all points away from the src point by the magnitude
  * 
- * @param original The original vector of points, left unchanged
- * @param result The vector to store the result in, will be resized and overwritten to match the original vector
+ * @param original The list of points to transform
  * @param srcX The x coordinate of the source point
  * @param srcY The y coordinate of the source point
  * @param magnitude The magnitude to scale the points by, 1 is no change, 0 is all points at the src point, >1 the points are scaled away from the src point
  */
-void transformVector(const vector<Point>& original, vector<Point>& result, double srcX, double srcY, double magnitude) {
-    transformVector(original, result, srcX, srcY, magnitude, magnitude);
+void transformVector(vector<Point>& points, double srcX, double srcY, double magnitude) {
+    transformVector(points, srcX, srcY, magnitude, magnitude);
 }
 
 /**
  * Transforms a vector of points by scaling all points away from the src point by the magnitude
  * For the magnitude, 1 is no change, 0 is all points at the src point, >1 the points are scaled away from the src point
- * @param original The original vector of points, left unchanged
- * @param result The vector to store the result in, will be resized and overwritten to match the original vector
+ * @param original The list of points to transform
  * @param srcX The x coordinate of the source point
  * @param srcY The y coordinate of the source point
  * @param magX Magnitude to scale the x coordinate by
  * @param magY Magnitude to scale the y coordinate by
  */
-void transformVector(const vector<Point>& original, vector<Point>& result, double srcX, double srcY, double magX, double magY) {
-    // Match the size of the result vector to the original vector
-    if (original.size() > result.size()) {
-        for (int i = 0; i < original.size() - result.size(); i++) {
-            result.push_back(Point(0, 0));
-        }
-    } else if (original.size() < result.size()) {
-        for (int i = 0; i < result.size() - original.size(); i++) {
-            result.pop_back();
-        }
-    }
-    
+void transformVector(vector<Point>& points, double srcX, double srcY, double magX, double magY) {
     // Scale all the points away/to the src point based on the magnitude
-    for (int i = 0; i < original.size(); i++) {
-        Point p = original[i];
-        double x = p.x - srcX;
-        double y = p.y - srcY;
-        double angle = atan2(y, x);
-        double distance = sqrt(x * x + y * y);
-        result[i].x = srcX + cos(angle) * (distance * magX);
-        result[i].y = srcY + sin(angle) * (distance * magY);
+    for (int i = 0; i < points.size(); i++) {
+        points[i].scaleBy(srcX, srcY, magX, magY);
     }
 }
 
@@ -52,7 +33,7 @@ void transformVector(const vector<Point>& original, vector<Point>& result, doubl
  * The current vector will be resized to match the target vector if it is smaller, and points will be inserted or deleted in between if needed.
  * Each point in the current vector will be moved towards the corresponding point in the target vector by the amount a * distance + b.
  * @param current The vector of points to modify
- * @param target The vector of points to move towards
+ * @param target The vector of points to move towards, left unchanged
  * @param a The amount to move towards the target point, 0 is no movement, 1 is moving the full distance
  * @param b The amount to move towards the target point, added to the distance * a
  */

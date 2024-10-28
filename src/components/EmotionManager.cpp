@@ -25,26 +25,22 @@ void EmotionManager::tick(double mic_magnitude) {
     blinkTimer--;
     if (blinkTimer < 0) resetBlinkTimer();
 
-    const vector<Point> targetEyeVector = FaceVectors::getEyeVector(emotion);
-    std::vector<Point> tempEye(targetEyeVector.size(), Point(0, 0)); // temp array to store transformed eye points
+    vector<Point> targetEyeVector = FaceVectors::getEyeVector(emotion); // Create a copy to manipulate
     transformVector(targetEyeVector, 
-                    tempEye, 
                     EYE_TRANSFORM_SRC_X, 
                     EYE_TRANSFORM_SRC_Y, 
                     1, 
                     blinkTimer < BLINK_DURATION ? 0.2 : 1);
-    interpolateVector(eyeVector, tempEye, 0.25, 0.25);
+    interpolateVector(eyeVector, targetEyeVector, 0.25, 0.25);
 
 
-    const vector<Point> targetMouthVector = FaceVectors::getMouthVector(emotion);
-    std::vector<Point> tempMouth(targetMouthVector.size(), Point(0, 0)); // temp array to store transformed mouth points
+    vector<Point> targetMouthVector = FaceVectors::getMouthVector(emotion);
     transformVector(targetMouthVector, 
-                    tempMouth, 
                     MOUTH_TRANSFORM_SRC_X, 
                     MOUTH_TRANSFORM_SRC_Y, 
                     1 + mic_magnitude, 
                     1 + (mic_magnitude * 1.5));
-    interpolateVector(mouthVector, tempMouth, 0.25, 0.25);
+    interpolateVector(mouthVector, targetMouthVector, 0.25, 0.25);
 }
 
 void EmotionManager::setEmotion(int newEmotion) {
