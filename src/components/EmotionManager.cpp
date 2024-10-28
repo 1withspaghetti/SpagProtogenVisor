@@ -31,8 +31,6 @@ void EmotionManager::tick(double mic_magnitude) {
                     EYE_TRANSFORM_SRC_Y, 
                     1, 
                     blinkTimer < BLINK_DURATION ? 0.2 : 1);
-    interpolateVector(eyeVector, targetEyeVector, 0.25, 0.25);
-
 
     vector<Point> targetMouthVector = FaceVectors::getMouthVector(emotion);
     transformVector(targetMouthVector, 
@@ -40,6 +38,9 @@ void EmotionManager::tick(double mic_magnitude) {
                     MOUTH_TRANSFORM_SRC_Y, 
                     1 + mic_magnitude, 
                     1 + (mic_magnitude * 1.5));
+    
+
+    interpolateVector(eyeVector, targetEyeVector, 0.25, 0.25);
     interpolateVector(mouthVector, targetMouthVector, 0.25, 0.25);
 }
 

@@ -6,6 +6,8 @@ void transformVector(vector<Point>& points, double srcX, double srcY, double mag
 
 void transformVector(vector<Point>& points, double srcX, double srcY, double magX, double magY);
 
+void translateVector(vector<Point>& points, double dx, double dy);
+
 void interpolateVector(vector<Point>& currentVector, const vector<Point>& targetVector, double a, double b);
 
 bool pointInPolygon(const vector<Point>& vector, Point p);

@@ -29,6 +29,15 @@ void transformVector(vector<Point>& points, double srcX, double srcY, double mag
 }
 
 /**
+ * Translates a vector of points by a set amount in the x and y directions
+ */
+void translateVector(vector<Point>& points, double dx, double dy) {
+    for (int i = 0; i < points.size(); i++) {
+        points[i].translate(dx, dy);
+    }
+}
+
+/**
  * Interpolates between two vectors of points, modifying the current vector to move towards the target vector.
  * The current vector will be resized to match the target vector if it is smaller, and points will be inserted or deleted in between if needed.
  * Each point in the current vector will be moved towards the corresponding point in the target vector by the amount a * distance + b.
