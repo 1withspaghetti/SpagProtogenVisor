@@ -27,6 +27,7 @@ class FaceVectors {
         static const vector<Point> mouth_1;
         static const vector<Point> mouth_2;
         static const vector<Point> mouth_3;
+        static const vector<Point> mouth_4;
 };
 
 
