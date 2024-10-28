@@ -33,9 +33,9 @@ class FaceMatrix {
          * 
          * @return true if the coverage vector was recalculated, false if the cached version was used
         */
-        bool display(CRGB color, uint8_t brightness, vector<Point>& eyeVector, vector<Point>& mouthVector);
+        bool display(CRGB color, uint8_t brightness, vector<Point>& eyeVector, vector<Point>& mouthVector, vector<Point>& specialVector);
         /**
          * Render the face on the matrix, will not use a cached version of the coverage vector in stead it will calculate it every time
         */
-        void render(CRGB color, uint8_t brightness, vector<Point>& eyeVector, vector<Point>& mouthVector);
+        void getMatrixCoverage(CRGB color, uint8_t brightness, vector<Point>& eyeVector, vector<Point>& mouthVector);
 };

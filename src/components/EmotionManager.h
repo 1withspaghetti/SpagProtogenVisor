@@ -26,6 +26,7 @@ class EmotionManager {
         int emotion;
         vector<Point> eyeVector;
         vector<Point> mouthVector;
+        vector<Point> specialVector;
         int blinkTimer;
     public:
         EmotionManager(int initialEmotion = 0);
@@ -36,6 +37,7 @@ class EmotionManager {
         int getEmotion();
         vector<Point>& getEyeVector();
         vector<Point>& getMouthVector();
+        vector<Point>& getSpecialVector();
         int getBlinkTimer();
         void setBlinkTimer(int newBlinkTimer);
         void startBlink();

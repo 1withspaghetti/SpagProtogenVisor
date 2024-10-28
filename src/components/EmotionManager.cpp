@@ -22,6 +22,8 @@ void EmotionManager::tick(double mic_magnitude) {
     if (mic_magnitude < MIC_SCALE_THRESHOLD) mic_magnitude = 0;
     if (mic_magnitude > MIC_SCALE_MAX) mic_magnitude = MIC_SCALE_MAX;
 
+    mic_magnitude = 0; // Temporarily disable mouth movement
+
     blinkTimer--;
     if (blinkTimer < 0) resetBlinkTimer();
 
@@ -39,8 +41,19 @@ void EmotionManager::tick(double mic_magnitude) {
                     1 + mic_magnitude, 
                     1 + (mic_magnitude * 1.5));
     
+    if (FaceVectors::getSpecialVector(emotion).size() > 0) {
+        translateVector(targetMouthVector, 0, -2);
+        translateVector(targetEyeVector, 0, -1);
+    }
+    vector<Point> targetSpecialVector = FaceVectors::getSpecialVector(emotion);
+    transformVector(targetSpecialVector, 
+                MOUTH_TRANSFORM_SRC_X, 
+                MOUTH_TRANSFORM_SRC_Y, 
+                1 + mic_magnitude, 
+                1 + (mic_magnitude * 1.5));
+    interpolateVector(specialVector, targetSpecialVector, 0.25, 0.25);
 
-    interpolateVector(eyeVector, targetEyeVector, 0.25, 0.25);
+    interpolateVector(eyeVector, targetEyeVector, 0.4, 0.5);
     interpolateVector(mouthVector, targetMouthVector, 0.25, 0.25);
 }
 
@@ -59,6 +72,10 @@ vector<Point>& EmotionManager::getEyeVector() {
 
 vector<Point>& EmotionManager::getMouthVector() {
     return mouthVector;
+}
+
+vector<Point>& EmotionManager::getSpecialVector() {
+    return specialVector;
 }
 
 /**

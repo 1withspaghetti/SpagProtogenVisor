@@ -17,6 +17,7 @@ class FaceVectors {
     public:
         static const vector<Point>& getEyeVector(int emotion);
         static const vector<Point>& getMouthVector(int emotion);
+        static const vector<Point>& getSpecialVector(int emotion);
 
     private:
         static const vector<Point> eye_1;
@@ -28,6 +29,8 @@ class FaceVectors {
         static const vector<Point> mouth_2;
         static const vector<Point> mouth_3;
         static const vector<Point> mouth_4;
+        static const vector<Point> special;
+        static const vector<Point> blank;
 };
 
 

@@ -103,22 +103,13 @@ const vector<Point> FaceVectors::mouth_3 = {
     Point( 04.0, 7.75 ),
 }; // ^m^
 
-const vector<Point> FaceVectors::mouth_4 = {
-    Point( 03.0, 4.0 ), 
-    Point( 05.0, 5.5 ), 
-    Point( 07.0, 6.0 ), 
-    Point( 10.0, 5.0 ), 
-    Point( 13.0, 6.0 ), 
-    Point( 16.0, 5.0 ), 
-    Point( 16.0, 6.0 ),
-    Point( 13.0, 7.0 ),
-    Point( 10.0, 6.0 ),
-    Point( 07.0, 7.0 ),
-    Point( 05.5, 6.5 ),
-    Point( 05.0, 8.0 ),
-    Point( 04.5, 6.5 ),
-    Point( 03.5, 5.6 ),
-}; // ^w^ with vampire fang
+const vector<Point> FaceVectors::special = {
+    Point( 6.5, 6.0 ), 
+    Point( 9.0, 6.0 ), 
+    Point( 7.0, 8.0 ), 
+}; // vampire fang
+
+const vector<Point> FaceVectors::blank = {};
 
 
 // ==============================================================================
@@ -162,5 +153,16 @@ const vector<Point>& FaceVectors::getMouthVector(int emotion) {
         
         default:
             return mouth_2;
+    }
+}
+
+const vector<Point>& FaceVectors::getSpecialVector(int emotion) {
+    switch (emotion) {
+        case EMOTION_HAPPY:
+        case EMOTION_NEUTRAL:
+        case EMOTION_DETERMINED:
+            return special;
+        default:
+            return blank;
     }
 }

@@ -14,35 +14,47 @@ void FaceMatrix::setup() {
     ledController->showColor(CRGB::Black, 0);
 }
 
-bool FaceMatrix::display(CRGB color, uint8_t brightness, vector<Point>& eyeVector, vector<Point>& mouthVector) {
+bool FaceMatrix::display(CRGB color, uint8_t brightness, vector<Point>& eyeVector, vector<Point>& mouthVector, vector<Point>& specialVector) {
+    bool hadToRecalculate = false;
     if (coverageCacheEyeVector != eyeVector || coverageCacheMouthVector != mouthVector) {
 
         Serial.println("FaceMatrix: Recalculating coverage vectors");
 
         // Recalculate the coverage
-        render(color, brightness, eyeVector, mouthVector);
+        getMatrixCoverage(color, brightness, eyeVector, mouthVector);
         coverageCacheEyeVector = eyeVector;
         coverageCacheMouthVector = mouthVector;
 
-        return true;
-
-    } else {
-        
-        // Use the cached version of the coverage vectors
-        ledController->clearLedData();
-        for (int i = 0; i < NEO_MATRIX_WIDTH * NEO_MATRIX_HEIGHT; i++) {
-            leds[i] = CRGB(color).nscale8(coverageCache[i]);
-        }
-        ledController->showLeds(brightness);
-
-        return false;
+        hadToRecalculate = true;
     }
+        
+    // Use the cached version of the coverage vectors
+    ledController->clearLedData();
+    for (int i = 0; i < NEO_MATRIX_WIDTH * NEO_MATRIX_HEIGHT; i++) {
+        leds[i] = CRGB(color).nscale8(coverageCache[i]);
+    }
+
+    if (specialVector.size() > 0) {
+        for (double y = 5; y < FACE_HEIGHT; y++) {
+            for (double x = 0; x < FACE_WIDTH; x++) {
+                uint16_t index = getPixelIndex(x + EYE_WIDTH, y);
+                uint16_t indexMirror = getPixelIndex(NEO_MATRIX_WIDTH - 1 - x - EYE_WIDTH, y);
+                uint8_t cover = getPixelCoverage({x, y}, specialVector);
+                if (cover > 0) {
+                    leds[index] = CRGB(CRGB::White).nscale8(cover/2);
+                    leds[indexMirror] = CRGB(CRGB::White).nscale8(cover/2);
+                }
+            }
+        }
+    }
+
+
+    ledController->showLeds(brightness);
+
+    return hadToRecalculate;
 }
 
-void FaceMatrix::render(CRGB color, uint8_t brightness, vector<Point>& eyeVector, vector<Point>& mouthVector) {
-
-    // Clear the matrix
-    ledController->clearLedData();
+void FaceMatrix::getMatrixCoverage(CRGB color, uint8_t brightness, vector<Point>& eyeVector, vector<Point>& mouthVector) {
 
     // Left eye
     for (double y = 0; y < EYE_HEIGHT; y++) {
@@ -50,7 +62,6 @@ void FaceMatrix::render(CRGB color, uint8_t brightness, vector<Point>& eyeVector
             uint16_t index = getPixelIndex(x, y);
             uint8_t cover = getPixelCoverage({x, y}, eyeVector);
             coverageCache[index] = cover;
-            if (cover > 0) leds[index] = CRGB(color).nscale8(cover);
         }
     }
 
@@ -60,31 +71,26 @@ void FaceMatrix::render(CRGB color, uint8_t brightness, vector<Point>& eyeVector
             uint16_t index = getPixelIndex(NEO_MATRIX_WIDTH - 1 - x, y);
             uint8_t cover = getPixelCoverage({x, y}, eyeVector);
             coverageCache[index] = cover;
-            if (cover > 0) leds[index] = CRGB(color).nscale8(cover);
         }
     }
 
     // Left Mouth
-    for (double y = 4; y < FACE_HEIGHT; y++) { // There is a optimization here that assumes the mouth is always in the bottom half of the face
+    for (double y = 3; y < FACE_HEIGHT; y++) { // There is a optimization here that assumes the mouth is always in the bottom part of the face
         for (double x = 0; x < FACE_WIDTH; x++) {
             uint16_t index = getPixelIndex(x + EYE_WIDTH, y);
             uint8_t cover = getPixelCoverage({x, y}, mouthVector);
             coverageCache[index] = cover;
-            if (cover > 0) leds[index] = CRGB(color).nscale8(cover);
         }
     }
 
     // Right Mouth
-    for (double y = 4; y < FACE_HEIGHT; y++) { // There is a optimization here that assumes the mouth is always in the bottom half of the face
+    for (double y = 3; y < FACE_HEIGHT; y++) { // There is a optimization here that assumes the mouth is always in the bottom part of the face
         for (double x = 0; x < FACE_WIDTH; x++) {
             uint16_t index = getPixelIndex(NEO_MATRIX_WIDTH - 1 - x - EYE_WIDTH, y);
             uint8_t cover = getPixelCoverage({x, y}, mouthVector);
             coverageCache[index] = cover;
-            if (cover > 0) leds[index] = CRGB(color).nscale8(cover);
         }
     }
-
-    ledController->showLeds(brightness);
 }
 
 /**
