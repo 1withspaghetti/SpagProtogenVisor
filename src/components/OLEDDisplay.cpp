@@ -15,8 +15,9 @@ OLEDDisplay::~OLEDDisplay()
 }
 
 void OLEDDisplay::setup() {
-
+    #ifdef VERBOSE
     Serial.println("OLED: Pre-rendering emotion icons...");
+    #endif
     for (uint8_t i = 0; i < EMOTION_TOTAL_COUNT; i++) {
 
         for (uint8_t y = 0; y < EYE_HEIGHT; y++) {
@@ -43,11 +44,15 @@ void OLEDDisplay::setup() {
             }
         }
     }
+    #ifdef VERBOSE
     Serial.println("OLED: Finished pre-rendering icons.");
+    #endif
 
 
-    if(!display->begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
-        for(;;) Serial.println(F("SSD1306 allocation failed"));
+    if(display->begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
+        initialized = true;
+    } else {
+        Serial.println("ERROR: SSD1306 allocation failed");
     }
     display->display();
     delay(100);
@@ -55,6 +60,12 @@ void OLEDDisplay::setup() {
 }
 
 void OLEDDisplay::render(int menu, int brightness, bool mic_active, vector<Point>& eyeVector, vector<Point>& mouthVector) {
+    if (!initialized) {
+        #ifdef VERBOSE
+        Serial.println("ERROR: OLED Display not initialized");
+        #endif
+        return;
+    }
     display->clearDisplay();
 
     // Add text

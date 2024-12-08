@@ -54,7 +54,9 @@ void EmotionManager::tick(double mic_magnitude) {
 }
 
 void EmotionManager::setEmotion(int newEmotion) {
+    #ifdef VERBOSE
     Serial.println("Setting emotion to " + String(newEmotion));
+    #endif
     emotion = newEmotion;
 }
 

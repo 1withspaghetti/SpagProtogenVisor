@@ -1,3 +1,4 @@
+#include "settings.h"
 #include "definitions/FaceVectors.h"
 #include "util/VectorUtil.h"
 #include <FastLED.h>

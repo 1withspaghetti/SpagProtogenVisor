@@ -102,7 +102,7 @@ void interpolateVector(vector<Point>& current, const vector<Point>& target, doub
             }
 
             if (minIndexT > 0 && minIndexT != c) {
-                Serial.println("Removing at "+ String(c) + " to " + String(minIndexT));
+                //Serial.println("Removing at "+ String(c) + " to " + String(minIndexT));
                 current.erase(std::next(current.begin(), c), std::next(current.begin(), minIndexT));
             }
 

@@ -1,16 +1,12 @@
 #include <Arduino.h>
 
+#include "settings.h"
 #include "components/FaceMatrix.h"
 #include "components/HeadphoneMatrix.h"
 #include "components/OLEDDisplay.h"
 #include "components/EmotionManager.h"
 #include "components/RFReceiver.h"
 #include "components/Microphone.h"
-
-// ############################
-// #define DEBUG
-// ############################
-
 
 // ############################
 // #        CONSTANTS         #
@@ -127,7 +123,7 @@ void setup() {
 // ############################
 
 void loop() {
-  #ifdef DEBUG
+  #ifdef VERBOSE_TICK_TIME
   unsigned long loopStart = millis();
   #endif
 
@@ -135,11 +131,11 @@ void loop() {
   if (micros() - microsLastLoop > 1000000 / TICKS_PER_SECOND) {
     microsLastLoop = micros();
 
-    #ifdef DEBUG
+    #ifdef VERBOSE_TICK_TIME
     unsigned long tickStart = millis();
     #endif
     tick();
-    #ifdef DEBUG
+    #ifdef VERBOSE_TICK_TIME
     Serial.print("  Tick Time: ");
     Serial.print(millis()-tickStart);
     Serial.println("ms");
@@ -151,7 +147,7 @@ void loop() {
   render(delta);
 
 
-  #ifdef DEBUG
+  #ifdef VERBOSE_TICK_TIME
   unsigned long loopEnd = millis();
   Serial.print("Loop Time: ");
   Serial.print(loopEnd - loopStart);
@@ -168,14 +164,14 @@ void loop() {
 void render(float delta) {
   
   // Render face matrix
-  #ifdef DEBUG
+  #ifdef VERBOSE_RENDER_TIME
   unsigned long matrixStart = millis();
   #endif
   color.setHue((uint8_t) (sin(millis() / (1000.0 * 2 * PI) * HUE_CHANGE_PER_SECOND) * hueRadius + hueCenter));
   bool wasFaceMatrixRecalculated = face_matrix.display(color, brightness * BRIGHTNESS_MULTIPLIER + BRIGHTNESS_INITIAL, emotion.getEyeVector(), emotion.getMouthVector(), emotion.getSpecialVector());
   shouldPaintOLED = shouldPaintOLED || wasFaceMatrixRecalculated;
   headphone_matrix.display(color, brightness * BRIGHTNESS_MULTIPLIER + BRIGHTNESS_INITIAL);
-  #ifdef DEBUG
+  #ifdef VERBOSE_RENDER_TIME
   Serial.print("  Matrix Render Time: ");
   Serial.print(millis()-matrixStart);
   Serial.println("ms");
@@ -183,14 +179,14 @@ void render(float delta) {
 
 
   // Render OLED display
-  #ifdef DEBUG
+  #ifdef VERBOSE_RENDER_TIME
   unsigned long oledStart = millis();
   #endif
   if (shouldPaintOLED) {
     display.render(menu, brightness, false, emotion.getEyeVector(), emotion.getMouthVector());
     shouldPaintOLED = false;
   }
-  #ifdef DEBUG
+  #ifdef VERBOSE_RENDER_TIME
   Serial.print("  OLED Render Time: ");
   Serial.print(millis()-oledStart);
   Serial.println("ms");
@@ -207,7 +203,7 @@ void tick() {
 
   // Update face vectors
   double mic_magnitude = mic.getMagnitude();
-  #ifdef DEBUG
+  #ifdef VERBOSE_MIC
   Serial.print("Mic Magnitude: ");
   Serial.println(mic_magnitude);
   #endif
@@ -239,5 +235,12 @@ void tick() {
     }
 
     brightness = constrain(brightness, 0, 10);
+
+    #ifdef VERBOSE_RF
+    Serial.print("RF Signal: ");
+    Serial.print(buttonState, BIN);
+    Serial.print(" | Menu: ");
+    Serial.println(menu);
+    #endif
   }
 }
