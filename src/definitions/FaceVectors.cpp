@@ -158,10 +158,6 @@ const vector<Point>& FaceVectors::getMouthVector(int emotion) {
 
 const vector<Point>& FaceVectors::getSpecialVector(int emotion) {
     switch (emotion) {
-        case EMOTION_HAPPY:
-        case EMOTION_NEUTRAL:
-        case EMOTION_DETERMINED:
-            return special;
         default:
             return blank;
     }
