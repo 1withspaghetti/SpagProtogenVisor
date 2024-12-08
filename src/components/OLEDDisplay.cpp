@@ -60,6 +60,7 @@ void OLEDDisplay::setup() {
 }
 
 void OLEDDisplay::render(int menu, int brightness, bool mic_active, vector<Point>& eyeVector, vector<Point>& mouthVector) {
+    if (!needsRender) return;
     if (!initialized) {
         #ifdef VERBOSE
         Serial.println("ERROR: OLED Display not initialized");
@@ -135,6 +136,7 @@ void OLEDDisplay::render(int menu, int brightness, bool mic_active, vector<Point
     }
 
     display->display();
+    needsRender = false;
 }
 
 void OLEDDisplay::drawProtoIcon(int rel_x, int rel_y, int emotionIcon) {
@@ -147,4 +149,8 @@ void OLEDDisplay::drawProtoIcon(int rel_x, int rel_y, int emotionIcon) {
             }
         }
     }
+}
+
+void OLEDDisplay::setNeedsRender(bool needsRender) {
+    this->needsRender = needsRender;
 }

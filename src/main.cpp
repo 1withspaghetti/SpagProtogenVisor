@@ -32,8 +32,6 @@ long microsLastLoop = 0;
 int menu = 0;
 bool buttonPressed = false;
 
-bool shouldPaintOLED = true;
-
 uint8_t brightness = 3;
 
 const float hueRadius = (HUE_END - HUE_START) / 2;
@@ -169,7 +167,7 @@ void render(float delta) {
   #endif
   color.setHue((uint8_t) (sin(millis() / (1000.0 * 2 * PI) * HUE_CHANGE_PER_SECOND) * hueRadius + hueCenter));
   bool wasFaceMatrixRecalculated = face_matrix.display(color, brightness * BRIGHTNESS_MULTIPLIER + BRIGHTNESS_INITIAL, emotion.getEyeVector(), emotion.getMouthVector(), emotion.getSpecialVector());
-  shouldPaintOLED = shouldPaintOLED || wasFaceMatrixRecalculated;
+  if (wasFaceMatrixRecalculated) display.setNeedsRender(true);
   headphone_matrix.display(color, brightness * BRIGHTNESS_MULTIPLIER + BRIGHTNESS_INITIAL);
   #ifdef VERBOSE_RENDER_TIME
   Serial.print("  Matrix Render Time: ");
@@ -182,10 +180,9 @@ void render(float delta) {
   #ifdef VERBOSE_RENDER_TIME
   unsigned long oledStart = millis();
   #endif
-  if (shouldPaintOLED) {
-    display.render(menu, brightness, false, emotion.getEyeVector(), emotion.getMouthVector());
-    shouldPaintOLED = false;
-  }
+  // Note: The OLED display is only updated if the display needs to be rendered, by calling setNeedsRender(true)
+  // Overwise, this function will return immediately
+  display.render(menu, brightness, false, emotion.getEyeVector(), emotion.getMouthVector());
   #ifdef VERBOSE_RENDER_TIME
   Serial.print("  OLED Render Time: ");
   Serial.print(millis()-oledStart);
@@ -216,22 +213,22 @@ void tick() {
         if      (buttonState & 0b1000) emotion.setEmotion(0);
         else if (buttonState & 0b0100) emotion.setEmotion(1);
         else if (buttonState & 0b0010) emotion.setEmotion(2);
-        else if (buttonState & 0b0001) {menu = 1; shouldPaintOLED = true;}
+        else if (buttonState & 0b0001) {menu = 1; display.setNeedsRender(true);}
     } else if (menu == 1) {
         if      (buttonState & 0b1000) emotion.setEmotion(3);
         else if (buttonState & 0b0100) emotion.setEmotion(4);
         else if (buttonState & 0b0010) emotion.setEmotion(5);
-        else if (buttonState & 0b0001) {menu = 2; shouldPaintOLED = true;}
+        else if (buttonState & 0b0001) {menu = 2; display.setNeedsRender(true);}
     } else if (menu == 2) {
         if      (buttonState & 0b1000) emotion.setEmotion(6);
         else if (buttonState & 0b0100) emotion.setEmotion(7);
-        else if (buttonState & 0b0010) {menu = 3; shouldPaintOLED = true;}
-        else if (buttonState & 0b0001) {menu = 0; shouldPaintOLED = true;}
+        else if (buttonState & 0b0010) {menu = 3; display.setNeedsRender(true);}
+        else if (buttonState & 0b0001) {menu = 0; display.setNeedsRender(true);}
     } else if (menu == 3) {
-        if      (buttonState & 0b1000) {brightness--; shouldPaintOLED = true;}
-        else if (buttonState & 0b0100) {brightness++; shouldPaintOLED = true;}
+        if      (buttonState & 0b1000) {brightness--; display.setNeedsRender(true);}
+        else if (buttonState & 0b0100) {brightness++; display.setNeedsRender(true);}
         else if (buttonState & 0b0010) resetFunc();
-        else if (buttonState & 0b0001) {menu = 0; shouldPaintOLED = true;}
+        else if (buttonState & 0b0001) {menu = 0; display.setNeedsRender(true);}
     }
 
     brightness = constrain(brightness, 0, 10);
