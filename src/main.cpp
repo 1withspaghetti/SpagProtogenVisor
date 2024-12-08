@@ -7,6 +7,7 @@
 #include "components/EmotionManager.h"
 #include "components/RFReceiver.h"
 #include "components/Microphone.h"
+#include "components/BLEServer.h"
 
 // ############################
 // #        CONSTANTS         #
@@ -69,6 +70,9 @@ EmotionManager emotion = EmotionManager(0);
 // Microphone object
 Microphone mic = Microphone();
 
+// Bluetooth object
+ProtoBLEServer ble = ProtoBLEServer();
+
 
 // ############################
 // #          Setup           #
@@ -108,6 +112,8 @@ void setup() {
     NULL,
     0
   );
+
+  ble.setup();
 
   Serial.println("Protogen started! ^w^");
 }
@@ -179,7 +185,7 @@ void render(float delta) {
   #endif
   // Note: The OLED display is only updated if the display needs to be rendered, by calling setNeedsRender(true)
   // Overwise, this function will return immediately
-  display.render(brightness, emotion.getEyeVector(), emotion.getMouthVector());
+  display.render(brightness, emotion.getEyeVector(), emotion.getMouthVector(), ble.leftConnected, ble.rightConnected);
   #ifdef VERBOSE_RENDER_TIME
   Serial.print("  OLED Render Time: ");
   Serial.print(millis()-oledStart);
@@ -203,8 +209,9 @@ void tick() {
   #endif
   emotion.tick(mic_magnitude);
 
-  // Check for button presses on the remote
+  // Check for button presses from the inputs
   uint8_t buttonState = rf.tick();
+  if (buttonState == 0) buttonState = ble.getButtonState();
   if (buttonState > 0) {
     int menu = display.getMenu();
     if (menu == 0) {

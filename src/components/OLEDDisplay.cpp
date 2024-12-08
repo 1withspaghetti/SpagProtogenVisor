@@ -59,7 +59,7 @@ void OLEDDisplay::setup() {
     display->clearDisplay();
 }
 
-void OLEDDisplay::render(int brightness, vector<Point>& eyeVector, vector<Point>& mouthVector) {
+void OLEDDisplay::render(int brightness, vector<Point>& eyeVector, vector<Point>& mouthVector, bool leftPawConnected, bool rightPawConnected) {
     if (!needsRender) return;
     if (!initialized) {
         #ifdef VERBOSE
@@ -74,6 +74,10 @@ void OLEDDisplay::render(int brightness, vector<Point>& eyeVector, vector<Point>
     display->setTextSize(2);
     display->setCursor(0, 0);
     display->print("Spag!");
+
+    // Bluetooth connected icons, right above the menu buttons
+    display->drawBitmap(64 + 20 + 2, 0, leftPawConnected ? paw_connected_icon : paw_disconnected_icon, PAW_ICON_WIDTH, PAW_ICON_HEIGHT, SSD1306_WHITE);
+    display->drawBitmap(64 + 42 + 2, 8, rightPawConnected ? paw_connected_icon : paw_disconnected_icon, PAW_ICON_WIDTH, PAW_ICON_HEIGHT, SSD1306_WHITE);
 
     // Proto Display
     display->drawBitmap(0, 16, proto_display_bmp, PROTO_DISPLAY_WIDTH, PROTO_DISPLAY_HEIGHT, SSD1306_WHITE);

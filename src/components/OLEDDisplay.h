@@ -22,7 +22,7 @@ class OLEDDisplay {
         OLEDDisplay();
         ~OLEDDisplay();
         void setup();
-        void render(int brightness, vector<Point>& eyeVector, vector<Point>& mouthVector);
+        void render(int brightness, vector<Point>& eyeVector, vector<Point>& mouthVector, bool leftPawConnected, bool rightPawConnected);
         void setNeedsRender(bool needsRender);
         void setMenu(int menu);
         int getMenu();
