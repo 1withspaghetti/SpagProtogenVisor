@@ -29,9 +29,6 @@
 
 long microsLastLoop = 0;
 
-int menu = 0;
-bool buttonPressed = false;
-
 uint8_t brightness = 3;
 
 const float hueRadius = (HUE_END - HUE_START) / 2;
@@ -182,7 +179,7 @@ void render(float delta) {
   #endif
   // Note: The OLED display is only updated if the display needs to be rendered, by calling setNeedsRender(true)
   // Overwise, this function will return immediately
-  display.render(menu, brightness, false, emotion.getEyeVector(), emotion.getMouthVector());
+  display.render(brightness, emotion.getEyeVector(), emotion.getMouthVector());
   #ifdef VERBOSE_RENDER_TIME
   Serial.print("  OLED Render Time: ");
   Serial.print(millis()-oledStart);
@@ -209,26 +206,27 @@ void tick() {
   // Check for button presses on the remote
   uint8_t buttonState = rf.tick();
   if (buttonState > 0) {
+    int menu = display.getMenu();
     if (menu == 0) {
         if      (buttonState & 0b1000) emotion.setEmotion(0);
         else if (buttonState & 0b0100) emotion.setEmotion(1);
         else if (buttonState & 0b0010) emotion.setEmotion(2);
-        else if (buttonState & 0b0001) {menu = 1; display.setNeedsRender(true);}
+        else if (buttonState & 0b0001) display.setMenu(1);
     } else if (menu == 1) {
         if      (buttonState & 0b1000) emotion.setEmotion(3);
         else if (buttonState & 0b0100) emotion.setEmotion(4);
         else if (buttonState & 0b0010) emotion.setEmotion(5);
-        else if (buttonState & 0b0001) {menu = 2; display.setNeedsRender(true);}
+        else if (buttonState & 0b0001) display.setMenu(2);
     } else if (menu == 2) {
         if      (buttonState & 0b1000) emotion.setEmotion(6);
         else if (buttonState & 0b0100) emotion.setEmotion(7);
-        else if (buttonState & 0b0010) {menu = 3; display.setNeedsRender(true);}
-        else if (buttonState & 0b0001) {menu = 0; display.setNeedsRender(true);}
+        else if (buttonState & 0b0010) display.setMenu(3);
+        else if (buttonState & 0b0001) display.setMenu(0);
     } else if (menu == 3) {
         if      (buttonState & 0b1000) {brightness--; display.setNeedsRender(true);}
         else if (buttonState & 0b0100) {brightness++; display.setNeedsRender(true);}
         else if (buttonState & 0b0010) resetFunc();
-        else if (buttonState & 0b0001) {menu = 0; display.setNeedsRender(true);}
+        else if (buttonState & 0b0001) display.setMenu(0);
     }
 
     brightness = constrain(brightness, 0, 10);

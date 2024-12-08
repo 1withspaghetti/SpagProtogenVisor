@@ -59,7 +59,7 @@ void OLEDDisplay::setup() {
     display->clearDisplay();
 }
 
-void OLEDDisplay::render(int menu, int brightness, bool mic_active, vector<Point>& eyeVector, vector<Point>& mouthVector) {
+void OLEDDisplay::render(int brightness, vector<Point>& eyeVector, vector<Point>& mouthVector) {
     if (!needsRender) return;
     if (!initialized) {
         #ifdef VERBOSE
@@ -153,4 +153,16 @@ void OLEDDisplay::drawProtoIcon(int rel_x, int rel_y, int emotionIcon) {
 
 void OLEDDisplay::setNeedsRender(bool needsRender) {
     this->needsRender = needsRender;
+}
+
+/**
+ * Set the current menu, also sets the needsRender flag to true
+ */
+void OLEDDisplay::setMenu(int menu) {
+    this->menu = menu;
+    needsRender = true;
+}
+
+int OLEDDisplay::getMenu() {
+    return menu;
 }
