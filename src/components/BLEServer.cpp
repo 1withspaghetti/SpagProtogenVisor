@@ -1,7 +1,7 @@
 #include "BLEServer.h"
 
-esp_bd_addr_t ProtoBLEServer::leftADDR = {0xD4, 0xF9, 0x8D, 0x04, 0x1D, 0xB6};
-esp_bd_addr_t ProtoBLEServer::rightADDR = {0x64, 0xE8, 0x33, 0x00, 0xFC, 0x3E};
+esp_bd_addr_t ProtoBLEServer::leftADDR = {0x64, 0xE8, 0x33, 0x00, 0xFC, 0x3E};
+esp_bd_addr_t ProtoBLEServer::rightADDR = {0x64, 0xE8, 0x33, 0x84, 0x54, 0xBA};
 
 ProtoBLEServer::ProtoBLEServer() {}
 
@@ -137,33 +137,52 @@ CharacteristicChangeCallbacks::CharacteristicChangeCallbacks(ProtoBLEServer *bt)
 
 void CharacteristicChangeCallbacks::onWrite(BLECharacteristic *characteristic) {
     #ifdef VERBOSE_BLE
-    Serial.print("BLE: Characteristic ");
-    Serial.print(characteristic->getUUID().toString().c_str());
-    Serial.print(" updated to ");
-    Serial.println(characteristic->getValue().c_str());
+    // Serial.print("BLE: Characteristic ");
+    // Serial.print(characteristic->getUUID().toString().c_str());
+    // Serial.print(" updated to ");
+    // Serial.println(characteristic->getValue()[0], BIN);
     #endif
 
     uint8_t newLeftValue = bt->leftValue;
     uint8_t newRightValue = bt->rightValue;
     if (characteristic->getUUID().equals(BLEUUID(CHARACTERISTIC_LEFT_UUID))) {
-        newLeftValue = characteristic->getValue()[0] - '0';
+        newLeftValue = characteristic->getValue()[0];
     } else if (characteristic->getUUID().equals(BLEUUID(CHARACTERISTIC_RIGHT_UUID))) {
-        newRightValue = characteristic->getValue()[0] - '0';
+        newRightValue = characteristic->getValue()[0];
     }
+
+    if (newLeftValue == bt->leftValue && newRightValue == bt->rightValue) return; // No change
+
+    // Serial.print((newLeftValue & bt->leftValue & 0b100) != 0 && (newRightValue & bt->rightValue & 0b100) != 0);
+    // Serial.print(" ");
+    // Serial.print((newLeftValue & 0b011) == 0 && (newRightValue & 0b011) == 0);
+    // Serial.print(" ");
+    // Serial.print((bt->leftValue & 0b1) + (bt->leftValue >> 1 & 0b1) + (bt->rightValue & 0b1) + (bt->rightValue >> 1 & 0b1) == 1);
+    // Serial.print(" ");
+    // Serial.print(millis() - bt->lastUpdate > 100 && millis() - bt->lastUpdate < 2000);
+    // Serial.print(" left: ");
+    // Serial.print(bt->leftValue | 0b1000, BIN);
+    // Serial.print(" newLeft: ");
+    // Serial.print(newLeftValue | 0b1000, BIN);
+    // Serial.print(" right: ");
+    // Serial.print(bt->rightValue | 0b1000, BIN);
+    // Serial.print(" newRight: ");
+    // Serial.println(newRightValue | 0b1000, BIN);
+
 
     // Basically, to "click" a button, middle finger has to be down, and then put down and release one of the other fingers to click that "button"
     
-    if (newLeftValue & bt->leftValue & 0b1 && newRightValue & bt->rightValue & 0b1 && // If the first bit is set (middle finger down) before and after on both
-        newLeftValue >> 1 == 0 && newRightValue >> 1 == 0 && // Now none of the other bits should be set
-        bt->leftValue >> 2 ^ bt->leftValue >> 3 ^ bt->rightValue >> 2 ^ bt->rightValue >> 3 && // And ONLY ONE of the other bits should have been set before
-        millis() - bt->lastUpdate > 250 && // Held for at least 250ms
+    if ((newLeftValue & bt->leftValue & 0b100) != 0 && (newRightValue & bt->rightValue & 0b100) != 0 && // If the first bit is set (middle finger down) before and after on both
+        (newLeftValue & 0b011) == 0 && (newRightValue & 0b011) == 0 && // Now none of the other bits should be set
+        (bt->leftValue & 0b1) + (bt->leftValue >> 1 & 0b1) + (bt->rightValue & 0b1) + (bt->rightValue >> 1 & 0b1) == 1 && // And ONLY ONE of the other bits should have been set before
+        millis() - bt->lastUpdate > 100 && // Held for at least 100ms
         millis() - bt->lastUpdate < 2000 // But not more than 2s
     ) {
         bt->lastButtonState = 
-            (bt->leftValue >> 3) << 3 | // left thumb (would be button 1 on rf)
-            (bt->leftValue >> 2) << 1 | // left index (would be button 3 on rf)
-            (bt->rightValue >> 3) << 2 | // right thumb (would be button 2 on rf)
-            (bt->rightValue >> 2) << 0; // right index (would be button 4 on rf)
+            (bt->leftValue >> 1 & 0b1) << 3 | // left thumb (would be button 1 on rf)
+            (bt->leftValue >> 0 & 0b1) << 1 | // left index (would be button 3 on rf)
+            (bt->rightValue >> 1 & 0b1) << 2 | // right thumb (would be button 2 on rf)
+            (bt->rightValue >> 0 & 0b1) << 0; // right index (would be button 4 on rf)
     }
 
     bt->leftValue = newLeftValue;

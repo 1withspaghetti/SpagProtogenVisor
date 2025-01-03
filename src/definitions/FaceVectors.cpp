@@ -6,13 +6,14 @@
 // Starting at left-most point, moving clockwise
 
 const vector<Point> FaceVectors::eye_1 = {
-    Point( 1, 6 ), 
+    Point( 0.5, 7 ), 
     Point( 3, 2 ), 
+    Point( 4, 1 ), 
     Point( 5, 2 ), 
-    Point( 7, 6 ), 
-    Point( 5.5, 6 ), 
-    Point( 4, 3 ), 
-    Point( 2.5, 6 )
+    Point( 7.5, 7 ), 
+    Point( 6, 7 ), 
+    Point( 4, 3 ),
+    Point( 2, 7 )
 }; // ^w^
 const vector<Point> FaceVectors::eye_2 = {
     Point( 0.5, 5.5 ), 

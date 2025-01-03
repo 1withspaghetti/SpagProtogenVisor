@@ -15,10 +15,10 @@ using namespace std;
 // Visual pixel size about follows the function 0.5^{2}=\left(x-0.5\right)^{2}+\left(y+0.5\right)^{2}
 // The things before define a box to check relative to a point, with its start and end points and how often to check
 #define ESTIMATE_START_X 0.2
-#define ESTIMATE_INCREMENT_X 0.4
+#define ESTIMATE_INCREMENT_X 0.2
 #define ESTIMATE_END_X 0.8
 #define ESTIMATE_START_Y 0.2
-#define ESTIMATE_INCREMENT_Y 0.4
+#define ESTIMATE_INCREMENT_Y 0.2
 #define ESTIMATE_END_Y 0.8
 #define ESTIMATE_TOTAL_ATTEMPTS ((ESTIMATE_END_X - ESTIMATE_START_X) / ESTIMATE_INCREMENT_X) * ((ESTIMATE_END_Y - ESTIMATE_START_Y) / ESTIMATE_INCREMENT_Y) + 4 // 4 is the amount of points checked in the initial optimization
 

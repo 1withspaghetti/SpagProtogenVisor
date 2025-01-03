@@ -17,7 +17,7 @@ void FaceMatrix::setup() {
 bool FaceMatrix::display(CRGB color, uint8_t brightness, vector<Point>& eyeVector, vector<Point>& mouthVector, vector<Point>& specialVector) {
     bool hadToRecalculate = false;
     if (coverageCacheEyeVector != eyeVector || coverageCacheMouthVector != mouthVector) {
-        #ifdef VERBOSE
+        #ifdef VERBOSE_RENDER_TIME
         Serial.println("FaceMatrix: Recalculating coverage vectors");
         #endif
 
@@ -124,5 +124,5 @@ uint8_t FaceMatrix::getPixelCoverage(Point point, vector<Point>& vector) {
             }
         }
     }
-    return floor(hits*(255.0/ESTIMATE_TOTAL_ATTEMPTS));
+    return floor(sqrt((double)hits/ESTIMATE_TOTAL_ATTEMPTS) * 255);
 }
