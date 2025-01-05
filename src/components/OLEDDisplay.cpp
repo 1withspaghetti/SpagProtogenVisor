@@ -59,7 +59,7 @@ void OLEDDisplay::setup() {
     display->clearDisplay();
 }
 
-void OLEDDisplay::render(int brightness, vector<Point>& eyeVector, vector<Point>& mouthVector, bool leftPawConnected, bool rightPawConnected) {
+void OLEDDisplay::render(int brightness, vector<Point>& eyeVector, vector<Point>& mouthVector, ProtoBLEStatus bleStatus) {
     if (!needsRender) return;
     if (!initialized) {
         #ifdef VERBOSE
@@ -76,8 +76,15 @@ void OLEDDisplay::render(int brightness, vector<Point>& eyeVector, vector<Point>
     display->print("Spag!");
 
     // Bluetooth connected icons, right above the menu buttons
-    display->drawBitmap(64 + 20 + 2, 0, leftPawConnected ? paw_connected_icon : paw_disconnected_icon, PAW_ICON_WIDTH, PAW_ICON_HEIGHT, SSD1306_WHITE);
-    display->drawBitmap(64 + 42 + 2, 0, rightPawConnected ? paw_connected_icon : paw_disconnected_icon, PAW_ICON_WIDTH, PAW_ICON_HEIGHT, SSD1306_WHITE);
+    display->drawBitmap(64 + 20 + 2, 0, bleStatus.leftConnected ? paw_connected_icon : paw_disconnected_icon, PAW_ICON_WIDTH, PAW_ICON_HEIGHT, SSD1306_WHITE);
+    display->drawBitmap(64 + 42 + 2, 0, bleStatus.rightConnected ? paw_connected_icon : paw_disconnected_icon, PAW_ICON_WIDTH, PAW_ICON_HEIGHT, SSD1306_WHITE);
+    // Pixel locations of beans on icon: (1,4) (7, 2) (13, 4)
+    if (bleStatus.leftValue >> 2 & 0b1) display->drawRect(64 + 20 + 2 + 1, 4, 2, 2, SSD1306_WHITE);
+    if (bleStatus.leftValue >> 1 & 0b1) display->drawRect(64 + 20 + 2 + 7, 2, 2, 2, SSD1306_WHITE);
+    if (bleStatus.leftValue >> 0 & 0b1) display->drawRect(64 + 20 + 2 + 13, 4, 2, 2, SSD1306_WHITE);
+    if (bleStatus.rightValue >> 0 & 0b1) display->drawRect(64 + 42 + 2 + 1, 4, 2, 2, SSD1306_WHITE);
+    if (bleStatus.rightValue >> 1 & 0b1) display->drawRect(64 + 42 + 2 + 7, 2, 2, 2, SSD1306_WHITE);
+    if (bleStatus.rightValue >> 2 & 0b1) display->drawRect(64 + 42 + 2 + 13, 4, 2, 2, SSD1306_WHITE);
 
     // Proto Display
     display->drawBitmap(0, 16, proto_display_bmp, PROTO_DISPLAY_WIDTH, PROTO_DISPLAY_HEIGHT, SSD1306_WHITE);

@@ -1,3 +1,6 @@
+#ifndef BLE_SERVER_H
+#define BLE_SERVER_H
+
 #include <Arduino.h>
 #include <BLEDevice.h>
 #include <BLEUtils.h>
@@ -15,6 +18,16 @@
 
 #define MAX_CLIENTS 2
 
+struct ProtoBLEStatus {
+    bool leftConnected;
+    bool rightConnected;
+    uint8_t leftValue;
+    uint8_t rightValue;
+    bool operator==(const ProtoBLEStatus &other) const {
+        return leftConnected == other.leftConnected && rightConnected == other.rightConnected && leftValue == other.leftValue && rightValue == other.rightValue;
+    }
+};
+
 class ProtoBLEServer {
     public:
         // These are the expected addresses of the clients, however this is only used for logging/visual purposes
@@ -29,6 +42,10 @@ class ProtoBLEServer {
          * Also resets the state so it only returns the new clicks since last call.
          */
         uint8_t getButtonState();
+        /**
+         * Bundles the current status of the BLE server into a struct.
+         */
+        ProtoBLEStatus getStatus();
 
         // All the variables are public so they can be accessed from the callbacks
         int devicesConnected = 0;
@@ -64,3 +81,5 @@ class ServerCallbacks: public BLEServerCallbacks {
         bool leftConnected = false;
         bool rightConnected = false;
 };
+
+#endif

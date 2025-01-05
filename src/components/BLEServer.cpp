@@ -1,6 +1,6 @@
 #include "BLEServer.h"
 
-esp_bd_addr_t ProtoBLEServer::leftADDR = {0x64, 0xE8, 0x33, 0x00, 0xFC, 0x3E};
+esp_bd_addr_t ProtoBLEServer::leftADDR = {0x64, 0xE8, 0x33, 0x85, 0x60, 0x0E};
 esp_bd_addr_t ProtoBLEServer::rightADDR = {0x64, 0xE8, 0x33, 0x84, 0x54, 0xBA};
 
 ProtoBLEServer::ProtoBLEServer() {}
@@ -59,6 +59,15 @@ uint8_t ProtoBLEServer::getButtonState() {
     return state;
 }
 
+ProtoBLEStatus ProtoBLEServer::getStatus() {
+    ProtoBLEStatus status;
+    status.leftConnected = leftConnected;
+    status.rightConnected = rightConnected;
+    status.leftValue = leftValue;
+    status.rightValue = rightValue;
+    return status;
+}
+
 ServerCallbacks::ServerCallbacks(ProtoBLEServer *bt) {
     this->bt = bt;
 }
@@ -76,7 +85,7 @@ void ServerCallbacks::onConnect(BLEServer *server, esp_ble_gatts_cb_param_t *par
         #ifdef VERBOSE_BLE
         Serial.println(" | Left");
         #endif
-    } else if (address.equals(BLEAddress(bt->leftADDR))) {
+    } else if (address.equals(BLEAddress(bt->rightADDR))) {
         bt->rightConnected = true;
         #ifdef VERBOSE_BLE
         Serial.println(" | Right");
@@ -110,7 +119,7 @@ void ServerCallbacks::onDisconnect(BLEServer *server, esp_ble_gatts_cb_param_t *
         #ifdef VERBOSE_BLE
         Serial.println(" | Left");
         #endif
-    } else if (address.equals(BLEAddress(bt->leftADDR))) {
+    } else if (address.equals(BLEAddress(bt->rightADDR))) {
         bt->rightConnected = false;
         #ifdef VERBOSE_BLE
         Serial.println(" | Right");

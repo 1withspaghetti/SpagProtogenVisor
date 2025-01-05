@@ -36,6 +36,7 @@ const float hueRadius = (HUE_END - HUE_START) / 2;
 const float hueCenter = HUE_START + hueRadius;
 
 CRGB color = CHSV(HUE_END, 255, 255);
+ProtoBLEStatus lastBLEStatus = {false, false, 0, 0};
 
 
 // ############################
@@ -185,7 +186,10 @@ void render(float delta) {
   #endif
   // Note: The OLED display is only updated if the display needs to be rendered, by calling setNeedsRender(true)
   // Overwise, this function will return immediately
-  display.render(brightness, emotion.getEyeVector(), emotion.getMouthVector(), ble.leftConnected, ble.rightConnected);
+  ProtoBLEStatus bleStatus = ble.getStatus();
+  if (!(bleStatus == lastBLEStatus)) display.setNeedsRender(true);
+  lastBLEStatus = bleStatus;
+  display.render(brightness, emotion.getEyeVector(), emotion.getMouthVector(), ble.getStatus());
   #ifdef VERBOSE_RENDER_TIME
   Serial.print("  OLED Render Time: ");
   Serial.print(millis()-oledStart);
